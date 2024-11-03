@@ -41,13 +41,13 @@ describe("Authentication",()=>{
     test("user is able to signup only once",async()=>{
         const username = `keshav${Math.random()}`
         const password = "keshav1234"
-        const res = await axios.post(`${BACKEND_URL}/signup`,{
+        const res = await axios.post(`${BACKEND_URL}/api/v1/signup`,{
             useranme,
             passowrd,
             type:"admin"
         })
         expect(res.status).toBe(200)
-        const updatedRes = await axios.post(`${BACKEND_URL}/signup`,{
+        const updatedRes = await axios.post(`${BACKEND_URL}/api/v1/signup`,{
             useranme,
             passowrd,
             type:"admin"
@@ -57,7 +57,7 @@ describe("Authentication",()=>{
     test("Signup request fails if username is not provided",async()=>{
         const username = `keshav${Math.random()}`
         const password = "keshav1234"
-        const res = await axios.post(`${BACKEND_URL}/signup`,{
+        const res = await axios.post(`${BACKEND_URL}/api/v1/signup`,{
             password,
             type:"admin"
         })
@@ -66,7 +66,7 @@ describe("Authentication",()=>{
     test("Signin successfull if username and password are correct",async()=>{
         const username = `keshav${Math.random()}`
         const password = "keshav1234"
-        const res = await axios.post(`${BACKEND_URL}/signin`,{
+        const res = await axios.post(`${BACKEND_URL}/api/v1/signin`,{
             username,
             password
         })
@@ -76,16 +76,46 @@ describe("Authentication",()=>{
     test("Signin fails if the username and password are incorrect",async()=>{
         const username = `keshav${Math.random()}`
         const password = "keshav1234"
-        const res = await axios.post(`${BACKEND_URL}/signin`,{
+        const res = await axios.post(`${BACKEND_URL}/api/v1/signin`,{
             username:'wrongusername',
             password
         })
         expect(res.status).toBe(400)
-        const updatedRes = await axios.post(`${BACKEND_URL}/signin`,{
+        const updatedRes = await axios.post(`${BACKEND_URL}/api/v1/signin`,{
             username,
             password:'wrongpassword'
         })
         expect(updatedRes.status).toBe(400)
     })
 
+})
+
+describe("user metadata endpoint",()=>{
+    let token ;
+    let avatarId;
+    beforeAll(async()=>{
+        const username = `keshav${Math.random()}`
+        const password = "keshav1234"
+        const res = await axios.post(`${BACKEND_URL}/api/v1/sigup`,{
+            username,
+            password,
+            type:"admin"
+        })
+        const res2 = await axios.post(`${BACKEND_URL}/api/v1/signin`,{
+            username,
+            password
+        })
+        token = res2.data.token
+
+        const res3 =  await axios.get(`${BACKEND_URL}/api/v1/admin/avatar`,{
+            "imageUrl": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQm3RFDZM21teuCMFYx_AROjt-AzUwDBROFww&s",
+            "name": "Timmy"
+        }, headers:{
+            Authorization:token
+        })
+        avatarId = res3.data.avatarId
+    })
+    test ("user is not able to update their metadata if the avtarid is not correct")
+    test("user can update their metadata if the avatarid is correct")
+    test("user can not update their metadat if the token is not correct")
 })
