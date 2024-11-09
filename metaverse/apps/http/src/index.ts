@@ -1,12 +1,13 @@
-import  express from "express"
-import {router} from "./routes/v1/index"
-const app =  express()
+import express from "express";
+import { router } from "./routes/v1/index";
+import client from "@repo/db/client";
 
-app.use(express.json())
+const app = express();
 
-app.use("/api/v1",router)
+app.use(express.json());
 
+app.use("/api/v1", router);
 
-app.listen(3006,()=>{
-    console.log("server started at http://localhost:3000")
-})
+app.listen(3006, () => {
+  console.log("server started at http://localhost:3000");
+});

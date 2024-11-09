@@ -41,6 +41,7 @@ model spaceElements {
   x         Int
   y         Int
   space     Space  @relation(fields: [spaceId], references: [id])
+  element   Element @relation(fields: [elementId],references: [id])
 }
 
 model Element {
@@ -49,6 +50,7 @@ model Element {
   height   Int
   imageUrl String
   mapElement mapElements[]
+  spaces    spaceElements[]
 }
 
 model Map {
