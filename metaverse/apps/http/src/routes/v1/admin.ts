@@ -1,6 +1,6 @@
 import {Router} from "express"
 import { adminMiddleware } from "../../middleware/admin"
-import { CreateAvatarSchema, CreateElementSchema, UpdateElementSchema } from "../../types";
+import { CreateAvatarSchema, CreateElementSchema, CreateMapSchema, UpdateElementSchema } from "../../types";
 import client from "@repo/db/client"
  
 export const adminRouter = Router()
@@ -94,6 +94,32 @@ adminRouter.post("/avatar",adminMiddleware,async(req:any,res:any)=>{
     }
 })
 
-adminRouter.post("/map",(req,res)=>{
-
+adminRouter.post("/map",adminMiddleware,async(req:any,res:any)=>{
+    try{
+        const parsedData = CreateMapSchema.safeParse(req.body)
+        if(!parsedData){
+            return res.status(400).json({
+                message:"invalid data"
+            })
+        }
+        const map = await client.map.create({
+            data:{
+                thumbnail:parsedData.data?.thumbnail!,
+                width:parseInt(parsedData.data?.dimessions.split("X")[0]!),
+                height:parseInt(parsedData.data?.dimessions.split("X")[1]!),
+                name:parsedData.data?.name!,
+                elements:{
+                    create:parsedData.data?.defaultElements!.map((element:any)=>({
+                        elementId:element.elementId,
+                        x:element.x,
+                        y:element.y
+                    }))
+                }
+            }
+        })
+    }catch(e){
+        return res.status(400).json({
+            message:"internal server error"
+        })
+    }
 })
