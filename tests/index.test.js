@@ -103,62 +103,62 @@ describe("Authentication", () => {
   });
 });
 
-// describe("user metadata endpoint",()=>{
-//     let token ;
-//     let avatarId;
-//     beforeAll(async()=>{
-//         const username = `keshav${Math.random()}`
-//         const password = "keshav1234"
-//         const res = await axios.post(`${BACKEND_URL}/api/v1/sigup`,{
-//             username,
-//             password,
-//             type:"admin"
-//         })
-//         const res2 = await axios.post(`${BACKEND_URL}/api/v1/signin`,{
-//             username,
-//             password
-//         })
-//         token = res2.data.token
+describe("user metadata endpoint",()=>{
+    let token ;
+    let avatarId;
+    beforeAll(async()=>{
+        const username = `keshav${Math.random()}`
+        const password = "keshav1234"
+        const res = await axios.post(`${BACKEND_URL}/api/v1/sigup`,{
+            username,
+            password,
+            type:"admin"
+        })
+        const res2 = await axios.post(`${BACKEND_URL}/api/v1/signin`,{
+            username,
+            password
+        })
+        token = res2.data.token
 
-//         const res3 =  await axios.get(`${BACKEND_URL}/api/v1/admin/avatar`,{
-//             "imageUrl": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQm3RFDZM21teuCMFYx_AROjt-AzUwDBROFww&s",
-//             "name": "Timmy"
-//         },{
-//             headers:{
-//                 Authorization:token
-//             }
-//         })
-//         console.log(`avtar id is ${res3.data.avatarId}`)
-//         avatarId = res3.data.avatarId
-//     })
-//     test ("user is not able to update their metadata if the avtarid is not correct",async()=>{
-//         const res = await axios.put(`${BACKEND_URL}/api/v1/user/metadata`,{
-//             avatarId:"wrongavatarid"
-//         },{
-//             headers:{
-//                 Authorization:token
-//             }
-//         })
-//         expect(res.status).toBe(400)
-//     })
-//     test("user can update their metadata if the avatarid is correct",async()=>{
-//         const res= await axios.post(`${BACKEND_URL}/api/v1/user/metadata`,{
-//             avatarId:avatarId
-//         },{
-//             headers:{
-//                 Authorization:token
-//             }
-//         })
-//         expect(res.status).toBe(400)
-//     })
-//     test("user can not update their metadat if the token is not present",async()=>{
-//         const res = await axios.post(`${BACKEND_URL}/api/v1/user/metadata`,{
-//             avatarId:avatarId
-//         })
-//         expect(res.status).toBe(400)
-//     })
+        const res3 =  await axios.get(`${BACKEND_URL}/api/v1/admin/avatar`,{
+            "imageUrl": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQm3RFDZM21teuCMFYx_AROjt-AzUwDBROFww&s",
+            "name": "Timmy"
+        },{
+            headers:{
+                Authorization:token
+            }
+        })
+        console.log(`avtar id is ${res3.data.avatarId}`)
+        avatarId = res3.data.avatarId
+    })
+    test ("user is not able to update their metadata if the avtarid is not correct",async()=>{
+        const res = await axios.post(`${BACKEND_URL}/api/v1/user/metadata`,{
+            avatarId:"wrongavatarid"
+        },{
+            headers:{
+                Authorization:token
+            }
+        })
+        expect(res.status).toBe(400)
+    })
+    test("user can update their metadata if the avatarid is correct",async()=>{
+        const res= await axios.post(`${BACKEND_URL}/api/v1/user/metadata`,{
+            avatarId:avatarId
+        },{
+            headers:{
+                Authorization:token
+            }
+        })
+        expect(res.status).toBe(400)
+    })
+    test("user can not update their metadat if the token is not present",async()=>{
+        const res = await axios.post(`${BACKEND_URL}/api/v1/user/metadata`,{
+            avatarId:avatarId
+        })
+        expect(res.status).toBe(400)
+    })
 
-// })
+})
 
 // describe()
 // describe()

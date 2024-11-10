@@ -8,7 +8,7 @@ export const userRouter = Router();
 userRouter.post("/metadata", userMiddleware, async (req: any, res: any) => {
   const parsedData = UpdateMetadataSchema.safeParse(req.body);
   if (!parsedData.success) {
-    return res.status(403).json({
+    return res.status(400).json({
       message: "invalid data",
     });
   }
@@ -19,7 +19,7 @@ userRouter.post("/metadata", userMiddleware, async (req: any, res: any) => {
       },
     });
     if (!user) {
-      return res.status(404).json({
+      return res.status(400).json({
         message: "user not found",
       });
     }

@@ -117,6 +117,9 @@ adminRouter.post("/map",adminMiddleware,async(req:any,res:any)=>{
                 }
             }
         })
+        return res.json({
+            id:map.id
+        })
     }catch(e){
         return res.status(400).json({
             message:"internal server error"

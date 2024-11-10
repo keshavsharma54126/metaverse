@@ -5,7 +5,7 @@ export const adminMiddleware = (req: any, res: any, next: any) => {
   const header = req.headers.authorization;
   const token = header.split(" ")[1];
   if (!token) {
-    return res.status(401).json({
+    return res.status(400).json({
       message: "unauthorized",
     });
   }
@@ -15,14 +15,14 @@ export const adminMiddleware = (req: any, res: any, next: any) => {
       userId: string;
     };
     if (decoded.role !== "admin") {
-      return res.status(401).json({
+      return res.status(400).json({
         message: "unauthorized",
       });
     }
     req.userId = decoded.userId;
     next();
   } catch (error) {
-    return res.status(401).json({
+    return res.status(400).json({
       message: "unauthorized",
     });
   }

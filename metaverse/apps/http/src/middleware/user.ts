@@ -3,9 +3,14 @@ import { JWT_SECRET } from "../config";
 
 export const userMiddleware = (req: any, res: any, next: any) => {
   const header = req.headers.authorization;
+  if(!header){
+    return res.status(400).json({
+      message:"unauthorized"
+    })
+  }
   const token = header.split(" ")[1];
   if (!token) {
-    return res.status(401).json({
+    return res.status(400).json({
       message: "unauthorized",
     });
   }
@@ -15,14 +20,14 @@ export const userMiddleware = (req: any, res: any, next: any) => {
       userId: string;
     };
     if (decoded.role !== "user") {
-      return res.status(401).json({
+      return res.status(400).json({
         message: "unauthorized",
       });
     }
     req.userId = decoded.userId;
     next();
   } catch (error) {
-    return res.status(401).json({
+    return res.status(400).json({
       message: "unauthorized",
     });
   }
