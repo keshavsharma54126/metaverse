@@ -50,7 +50,8 @@ export const CreateAvatarSchema = z.object({
 
 export const CreateMapSchema = z.object({
   thumbnail: z.string(),
-  description: z.string(),
+  dimessions: z.string(),
+  name:z.string(),
   defaultElements: z.array(
     z.object({
       elementId: z.string(),

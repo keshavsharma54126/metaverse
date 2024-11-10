@@ -7,6 +7,7 @@ import client from "@repo/db/client";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { JWT_SECRET } from "../../config";
+import { userMiddleware } from "../../middleware/user";
 
 export const router = Router();
 
@@ -80,9 +81,29 @@ router.post("/signin", async (req: any, res: any) => {
   }
 });
 
-router.get("/avatars", (req: any, res: any) => {});
+router.get("/avatars", userMiddleware, async (req: any, res: any) => {
+  const avatars = await client.avatar.findMany()
+  return res.json({
+      avatars: avatars.map((a) => ({
+        id: a.id,
+        name: a.name,
+        imageUrl: a.imageUrl,
+      })),
+    });
+});
 
-router.get("/elements", (req, res) => {});
+router.get("/elements",userMiddleware,async(req:any, res:any) => {
+  const elements = await client.element.findMany();
+  return res.json({
+    elements: elements.map((e) => ({
+      id: e.id,
+      width: e.width,
+      height: e.height,
+      imageUrl: e.imageUrl,
+      static:e.static
+    })),
+  });
+});
 
 router.use("/user", userRouter);
 router.use("admin", adminRouter);
