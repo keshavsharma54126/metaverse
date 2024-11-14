@@ -1,17 +1,18 @@
 import WebSocket, { WebSocketServer } from "ws"
+import {User} from "./user"
 
 const ws = new WebSocketServer({
     port:8080
 })
 
 ws.on("connection",(ws)=>{
+    console.log("user connected")
+    let user = new User(ws)
+
     ws.on("error",console.error)
-
-    ws.on("message",(data)=>{
-        console.log("recieved",data)
+    ws.on("close",()=>{
+        user?.destroy()
     })
-
-    ws.send("something")
 })
 
 

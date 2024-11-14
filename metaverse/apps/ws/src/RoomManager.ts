@@ -16,15 +16,29 @@ export class RoomManager{
         return this.instance
     }
 
+    public removeUser(spaceId:string,user:User){
+        if(!this.rooms.has(spaceId)){
+            return
+        }
+        this.rooms.set(spaceId,(this.rooms.get(spaceId)?.filter((u)=>u.id!== user.id)) ?? [])
+    }
+
     public addUser(spaceId:string,user:User){
         if(!this.rooms.has(spaceId)){
             this.rooms.set(spaceId,[user])
             return
         }
-        this.rooms.get(spaceId)?.push(user)
+        this.rooms.set(spaceId, (this.rooms.get(spaceId)?.filter((u) => u.id !== user.id) ?? []));
     }
-    public broadcase(message:OutgoingMessage,user:User,roomId:string){
-        
+    public broadcast(message:OutgoingMessage,user:User,roomId:string){
+        if(!this.rooms.has(roomId)){
+            return
+        }
+        this.rooms.get(roomId)?.forEach((u)=>{
+            if(u.id !== user.id){
+            u.send(message)
+            }   
+        })
     }
 
 
