@@ -4,7 +4,7 @@ import { adminRouter } from "./admin";
 import { spaceRouter } from "./space";
 import { SigninSchema, SignupSchema } from "../../types";
 import client from "@repo/db/client";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { JWT_SECRET } from "../../config";
 import { userMiddleware } from "../../middleware/user";
@@ -82,17 +82,17 @@ router.post("/signin", async (req: any, res: any) => {
 });
 
 router.get("/avatars", userMiddleware, async (req: any, res: any) => {
-  const avatars = await client.avatar.findMany()
+  const avatars = await client.avatar.findMany();
   return res.json({
-      avatars: avatars.map((a) => ({
-        id: a.id,
-        name: a.name,
-        imageUrl: a.imageUrl,
-      })),
-    });
+    avatars: avatars.map((a) => ({
+      id: a.id,
+      name: a.name,
+      imageUrl: a.imageUrl,
+    })),
+  });
 });
 
-router.get("/elements",userMiddleware,async(req:any, res:any) => {
+router.get("/elements", userMiddleware, async (req: any, res: any) => {
   const elements = await client.element.findMany();
   return res.json({
     elements: elements.map((e) => ({
@@ -100,7 +100,7 @@ router.get("/elements",userMiddleware,async(req:any, res:any) => {
       width: e.width,
       height: e.height,
       imageUrl: e.imageUrl,
-      static:e.static
+      static: e.static,
     })),
   });
 });
