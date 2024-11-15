@@ -172,6 +172,4 @@ describe("user metadata endpoint", () => {
   });
 });
 
-// describe()
-// describe()
-// describe()
+describe("user avatar information",)
