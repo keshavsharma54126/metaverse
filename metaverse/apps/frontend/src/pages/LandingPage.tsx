@@ -59,7 +59,9 @@ const LandingPage = () => {
             <a href="#features" className="text-lg">Features</a>
             <a href="#about" className="text-lg">About</a>
             <a href="#pricing" className="text-lg">Pricing</a>
-            <button className="w-full bg-white/10 text-white px-6 py-3 rounded-full">
+            <button onClick={()=>{
+                    navigate("/signin")
+                }} className="w-full bg-white/10 text-white px-6 py-3 rounded-full">
               Sign In
             </button>
             <button className="w-full bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white px-6 py-3 rounded-full">

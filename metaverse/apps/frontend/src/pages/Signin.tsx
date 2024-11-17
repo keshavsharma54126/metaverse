@@ -3,6 +3,7 @@ import Googlesigninbutton from "../components/googlesigninbutton";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 const SignIn = () => {
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
   const [form, setForm] = useState({ username: "", password: "" });
   const navigate = useNavigate()
 
@@ -14,7 +15,7 @@ const SignIn = () => {
   const handleSignIn = async(e:any) => {
    try{
     e.preventDefault();
-    const res = await axios.post("http://localhost:3000/api/v1/signin",{
+    const res = await axios.post(`${BACKEND_URL}/signin`,{
       username:form.username,
       password:form.password
     })
