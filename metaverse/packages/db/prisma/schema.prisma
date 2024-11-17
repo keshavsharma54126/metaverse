@@ -30,8 +30,10 @@ model Space {
   height    Int?
   thumbnail String?
   adminId   String
+  mapId     String
   elements  spaceElements[]
   admin     User   @relation(fields: [adminId], references: [id])
+  map       Map    @relation(fields: [mapId], references: [id])
 }
 
 model spaceElements {
@@ -55,12 +57,13 @@ model Element {
 }
 
 model Map {
-  id     String  @id @unique @default(cuid())
-  thumbnail String
-  width  Int
-  height Int
-  name   String
-  elements mapElements[]
+  id                  String  @id @unique @default(cuid())
+  thumbnail           String
+  width               Int
+  height              Int
+  name                String
+  elements            mapElements[]
+  spaces              Space[]
 }
 
 model mapElements {

@@ -1,6 +1,6 @@
-import './App.css';
-import PhaserMultiplayer from './components/space';
-import World from './components/world';
+import "./App.css";
+import PhaserMultiplayer from "./components/space";
+import World from "./components/world";
 
 function App() {
   return (
@@ -11,10 +11,8 @@ function App() {
       <main className="app-main">
         <PhaserMultiplayer />
       </main>
-      
     </div>
   );
 }
 
 export default App;
-
