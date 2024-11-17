@@ -35,6 +35,7 @@ router.post("/signup", async (req: any, res: any) => {
         role: parsedData.data.role === "admin" ? "Admin" : "User",
       },
     });
+    //here we have to push the jwt token to the local
     return res.json({
       userId: user.id,
     });
@@ -47,6 +48,7 @@ router.post("/signup", async (req: any, res: any) => {
 
 router.post("/signin", async (req: any, res: any) => {
   const parsedData = SigninSchema.safeParse(req.body);
+  console.log(req.body)
   if (!parsedData.success)
     return res.status(403).json({
       message: "invalid data",

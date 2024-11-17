@@ -1,23 +1,39 @@
 import { useState } from "react";
 import Googlesigninbutton from "../components/googlesigninbutton";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 const SignIn = () => {
   const [form, setForm] = useState({ username: "", password: "" });
+  const navigate = useNavigate()
 
   const handleInputChange = (e:any) => {
     const { name, value } = e.target;
     setForm({ ...form, [name]: value });
   };
 
-  const handleSignIn = (e:any) => {
+  const handleSignIn = async(e:any) => {
+   try{
     e.preventDefault();
-    // Add sign-in logic here
-    console.log("Sign In:", form);
+    const res = await axios.post("http://localhost:3000/api/v1/signin",{
+      username:form.username,
+      password:form.password
+    })
+    const token = res.data.token;
+    console.log(token)
+    //here we have to set the token in the localstorage of browser
+    localStorage.setItem("authToken",`bearer ${token}`)
+
+    navigate("/dashboard")
+   }catch(e){
+    console.error(e,"error while signin")
+   }
+
   };
 
-  const handleGoogleSignIn = () => {
-    // Add Google Sign-In logic here
-    console.log("Google Sign-In");
-  };
+  // const handleGoogleSignIn = () => {
+  //   // Add Google Sign-In logic here
+  //   console.log("Google Sign-In");
+  // };
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-black text-white px-4">

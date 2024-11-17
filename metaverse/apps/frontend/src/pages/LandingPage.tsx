@@ -1,11 +1,11 @@
 import  { useState } from 'react';
-import Castle from "../assets/Castle2.png"
 import metaspace from "../assets/metaspace.mp4"
 import { Menu, X, ArrowRight, Users, Video, Gamepad, Zap, Globe, MessageSquare, ChevronRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const LandingPage = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
- 
+    const navigate = useNavigate()
 
   return (
     <div className="min-h-screen bg-black text-white overflow-hidden">
@@ -29,7 +29,11 @@ const LandingPage = () => {
               <a href="#features" className="text-sm text-gray-300 hover:text-white transition-colors">Features</a>
               <a href="#about" className="text-sm text-gray-300 hover:text-white transition-colors">About</a>
               <a href="#pricing" className="text-sm text-gray-300 hover:text-white transition-colors">Pricing</a>
-              <button className="bg-white/10 backdrop-blur-sm text-white px-6 py-2 rounded-full hover:bg-white/20 transition">
+              <button className="bg-white/10 backdrop-blur-sm text-white px-6 py-2 rounded-full hover:bg-white/20 transition"
+                onClick={()=>{
+                    navigate("/signin")
+                }}
+                >
                 Sign In
               </button>
               <button className="bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white px-6 py-2 rounded-full hover:opacity-90 transition">

@@ -1,22 +1,36 @@
 import { useState } from "react";
-import { ChevronRight } from "lucide-react";
+import axios from "axios"
+import { useNavigate } from "react-router-dom";
+
 
 const SignUp = () => {
   const [form, setForm] = useState({ username: "", password: "", confirmPassword: "" });
+  const navigate = useNavigate()
 
   const handleInputChange = (e:any) => {
     const { name, value } = e.target;
     setForm({ ...form, [name]: value });
   };
 
-  const handleSignUp = (e:any) => {
+  const handleSignUp = async (e:any) => {
     e.preventDefault();
-    if (form.password !== form.confirmPassword) {
-      alert("Passwords do not match");
-      return;
+    try{
+      if (form.password !== form.confirmPassword) {
+        alert("Passwords do not match");
+        return;
+      }
+      // Add sign-up logic here
+      const res =  await axios.post("http://localhost:3000/api/v1/signup", {
+        username: form.username,
+        password: form.password,
+        role: "user"
+      });
+      console.log(res)
+      navigate("/signin")
+    }catch(e){
+      console.error(e,"error while signup")
     }
-    // Add sign-up logic here
-    console.log("Sign Up:", form);
+    
   };
 
   return (
