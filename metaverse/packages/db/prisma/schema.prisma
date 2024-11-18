@@ -14,26 +14,36 @@ datasource db {
 }
 
 model User {
-  id       String  @id @unique @default(cuid())
-  username String  @unique
-  password String  
-  avatarId String?
-  role     Role
-  spaces   Space[]
-  avatar   Avatar?  @relation(fields: [avatarId], references: [id])
+  id                String  @id @unique @default(cuid())
+  googleId          String?
+  username          String  @unique
+  password          String  
+  avatarId          String?
+  role              Role
+  spaces            Space[] @relation("AdminSpaces")
+  invitedSpaces     Space[] @relation("MemberSpaces")
+  avatar            Avatar?  @relation(fields: [avatarId], references: [id])
 }
 
+
+
 model Space {
-  id        String  @id @unique @default(cuid())
-  name      String
-  width     Int
-  height    Int?
-  thumbnail String?
-  adminId   String
-  mapId     String
-  elements  spaceElements[]
-  admin     User   @relation(fields: [adminId], references: [id])
-  map       Map    @relation(fields: [mapId], references: [id])
+  id                  String  @id @unique @default(cuid())
+  name                String
+  description         String
+  capacity            Int
+  favourite           Boolean?
+  width               Int
+  height              Int?
+  thumbnail           String?
+  adminId             String
+  mapId               String
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  
+  elements            spaceElements[]
+  members             User[]  @relation("MemberSpaces")
+  admin               User   @relation(fields: [adminId], references: [id],name:"AdminSpaces")
+  map                 Map    @relation(fields: [mapId], references: [id])
 }
 
 model spaceElements {

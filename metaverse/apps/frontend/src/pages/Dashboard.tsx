@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Users,  Settings, LogOut, Plus, Search, Star, Clock} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -7,11 +7,18 @@ const Dashboard = () => {
   const [selectedSpace, setSelectedSpace] = useState(null);
     const navigate = useNavigate()
 
+    useEffect(()=>{
+        if(!localStorage.getItem("authToken")){
+            navigate("/signin")
+        }
+    },[])
+
   const spaces = [
     {
       id: 1,
       name: "Tech Hub Campus",
       description: "A virtual tech campus with meeting rooms, coffee shops, and collaboration zones",
+      thumbnail:"https://storage.icograms.com/templates/preview/traditional-complex.png",
       participants: 12,
       capacity: 50,
       favorite: true,
@@ -21,6 +28,7 @@ const Dashboard = () => {
       id: 2,
       name: "Zen Garden Office",
       description: "Peaceful workspace with meditation areas and quiet zones",
+      thumbnail:"https://i.ytimg.com/vi/JePchzu_USM/maxresdefault.jpg",
       participants: 8,
       capacity: 30,
       favorite: false,
@@ -30,6 +38,7 @@ const Dashboard = () => {
       id: 3,
       name: "Gaming Arena",
       description: "Multiple gaming zones with arcade machines and party games",
+      thumbnail:"https://cdn.prod.website-files.com/640f99c52b298c7753381c38/64227fef3607a78fb7af2ca7_6180810f2fc8a74097527122_team.png",
       participants: 15,
       capacity: 40,
       favorite: true,
@@ -39,6 +48,7 @@ const Dashboard = () => {
       id: 4,
       name: "Creative Studio",
       description: "Art galleries, brainstorming rooms, and creative workshops",
+      thumbnail:"https://cdn.prod.website-files.com/640f99c52b298c7753381c38/671bb72e8e9a8737cf2cf456_CTO-Labs-Feature-Card-2x.png",
       participants: 7,
       capacity: 25,
       favorite: false,
@@ -46,10 +56,6 @@ const Dashboard = () => {
     }
   ];
 
-  if(!localStorage.getItem("authToken")){
-    navigate("/signin")
-  }
- 
 
     return (
         <div className="min-h-screen bg-gray-950 text-white flex">
@@ -130,7 +136,7 @@ const Dashboard = () => {
                   {/* Thumbnail */}
                   <div className="relative h-48 bg-gray-800 overflow-hidden">
                     <img
-                      src={`/api/placeholder/${400}/${300}`}
+                      src={space.thumbnail}
                       alt={space.name}
                       className="w-full h-full object-cover transition-transform group-hover:scale-105"
                     />
@@ -156,13 +162,13 @@ const Dashboard = () => {
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-gray-500">Last visited: {space.lastVisited}</span>
                       <button
-                        className="px-4 py-2 bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white rounded-lg hover:opacity-90 transition"
+                        className="px-4 py-2 bg-gradient-to-r from-red-500 to-fuchsia-500 text-white rounded-lg hover:opacity-90 transition"
                         onClick={(e) => {
                           e.stopPropagation();
                           alert(`Entering ${space.name}`);
                         }}
                       >
-                        Enter Space
+                        Delete Space
                       </button>
                     </div>
                   </div>
@@ -218,7 +224,6 @@ const Dashboard = () => {
         </div>
       );
     };
-  
 
 
 export default Dashboard;

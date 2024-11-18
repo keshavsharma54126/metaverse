@@ -1,8 +1,7 @@
 import { useState } from "react";
-import Googlesigninbutton from "../components/googlesigninbutton";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-const SignIn = () => {
+const AdminSignIn = () => {
   const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
   const [form, setForm] = useState({ username: "", password: "" });
   const navigate = useNavigate()
@@ -23,7 +22,7 @@ const SignIn = () => {
     console.log(token)
     //here we have to set the token in the localstorage of browser
     localStorage.setItem("authToken",`bearer ${token}`)
-    navigate("/dashboard")
+    navigate("/adminDashboard")
     
    }catch(e){
     console.error(e,"error while signin")
@@ -31,15 +30,10 @@ const SignIn = () => {
 
   };
 
-  // const handleGoogleSignIn = () => {
-  //   // Add Google Sign-In logic here
-  //   console.log("Google Sign-In");
-  // };
-
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-black text-white px-4">
       <h1 className="text-4xl font-bold mb-8 bg-gradient-to-r from-violet-400 to-fuchsia-400 bg-clip-text text-transparent">
-        Sign In to MetaSpace
+       Hello Admin, Sign In to MetaSpace
       </h1>
       <form
         onSubmit={handleSignIn}
@@ -74,18 +68,8 @@ const SignIn = () => {
           Sign In
         </button>
       </form>
-      <div className="mt-6 bg-purple-600 p-2">
-        <Googlesigninbutton/>
-      </div>
-      <p className="mt-8 text-gray-400">
-
-        Don’t have an account?{" "}
-        <a href="/signup" className="text-violet-400 hover:underline">
-          Sign Up
-        </a>
-      </p>
     </div>
   );
 };
 
-export default SignIn;
+export default AdminSignIn;

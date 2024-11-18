@@ -5,6 +5,8 @@ import Signup  from "./pages/Signup";
 import Signin from "./pages/Signin";
 import Dashboard from "./pages/Dashboard";
 import Space from "../src/components/space"
+import AdminSignIn from "./pages/AdminSignIn";
+import AdminDashboard from "./pages/AdminDashboard";
 function App() {
   return (
     <>
@@ -13,7 +15,9 @@ function App() {
           <Route path="/" element={<LandingPage/>}/>
           <Route path="/signup" element={<Signup/>}/>
           <Route path="/signin" element={<Signin/>}/>
+          <Route path="/adminsignin" element={<AdminSignIn/>}/>
           <Route path="/dashboard" element={<Dashboard/>}/>
+          <Route path="/adminDashboard" element={<AdminDashboard/>}/>
           <Route path="/world" element={<Space/>}/>
         </Routes>
       </BrowserRouter>
