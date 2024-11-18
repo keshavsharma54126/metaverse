@@ -1,5 +1,5 @@
-import  { useState } from 'react';
-import { Plus, Search, Star, Clock, Settings, LogOut, Image, Map, User, Users } from 'lucide-react';
+import { useState } from 'react';
+import { Plus, Search, Star, Clock, Settings, LogOut, Map } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/Tabs';
 import { Input } from '../components/Input';
 import { Button } from '../components/Button';
@@ -18,8 +18,8 @@ const AdminDashboard = () => {
   ]);
   
   const [maps, setMaps] = useState([
-    { id: 1, name: 'Tech Hub Campus', thumbnail: '/api/placeholder/400/300', dimensions: '1920X1080', users: 12, capacity: 50 },
-    { id: 2, name: 'Zen Garden Office', thumbnail: '/api/placeholder/400/300', dimensions: '1920X1080', users: 8, capacity: 30 }
+    { id: 1, name: 'Tech Hub Campus', thumbnail: '/api/placeholder/400/300', dimensions: '1920x1080', users: 12, capacity: 50 },
+    { id: 2, name: 'Zen Garden Office', thumbnail: '/api/placeholder/400/300', dimensions: '1920x1080', users: 8, capacity: 30 }
   ]);
 
   const [newElement, setNewElement] = useState({
@@ -87,26 +87,22 @@ const AdminDashboard = () => {
         </div>
 
         <div className="space-y-1">
-          <Button variant="ghost" className="w-full justify-start text-gray-400 hover:bg-[#1f2128] hover:text-white">
-            <Map className="mr-2 h-4 w-4" />
-            Manage Spaces
-          </Button>
-          <Button variant="ghost" className="w-full justify-start text-gray-400 hover:bg-[#1f2128] hover:text-white">
-            <Star className="mr-2 h-4 w-4" />
-            Featured
-          </Button>
-          <Button variant="ghost" className="w-full justify-start text-gray-400 hover:bg-[#1f2128] hover:text-white">
-            <Clock className="mr-2 h-4 w-4" />
-            Recent
-          </Button>
-          <Button variant="ghost" className="w-full justify-start text-gray-400 hover:bg-[#1f2128] hover:text-white">
-            <Settings className="mr-2 h-4 w-4" />
-            Settings
-          </Button>
-          <Button variant="ghost" className="w-full justify-start text-gray-400 hover:bg-[#1f2128] hover:text-white">
-            <LogOut className="mr-2 h-4 w-4" />
-            Logout
-          </Button>
+          {[
+            { icon: Map, label: 'Manage Spaces' },
+            { icon: Star, label: 'Featured' },
+            { icon: Clock, label: 'Recent' },
+            { icon: Settings, label: 'Settings' },
+            { icon: LogOut, label: 'Logout' }
+          ].map((item) => (
+            <Button
+              key={item.label}
+              variant="ghost"
+              className="w-full justify-start text-gray-400 hover:bg-[#1f2128] hover:text-white"
+            >
+              <item.icon className="mr-2 h-4 w-4" />
+              {item.label}
+            </Button>
+          ))}
         </div>
       </div>
 
@@ -116,24 +112,15 @@ const AdminDashboard = () => {
         
         <Tabs defaultValue="elements" className="w-full">
           <TabsList className="bg-[#13141a] border-b border-[#1f2128] p-0">
-            <TabsTrigger 
-              value="elements" 
-              className="px-6 py-3 text-gray-400 data-[state=active]:text-white data-[state=active]:bg-[#1f2128]"
-            >
-              Elements
-            </TabsTrigger>
-            <TabsTrigger 
-              value="avatars" 
-              className="px-6 py-3 text-gray-400 data-[state=active]:text-white data-[state=active]:bg-[#1f2128]"
-            >
-              Avatars
-            </TabsTrigger>
-            <TabsTrigger 
-              value="maps" 
-              className="px-6 py-3 text-gray-400 data-[state=active]:text-white data-[state=active]:bg-[#1f2128]"
-            >
-              Maps
-            </TabsTrigger>
+            {['elements', 'avatars', 'maps'].map((tab) => (
+              <TabsTrigger 
+                key={tab}
+                value={tab} 
+                className="px-6 py-3 text-gray-400 data-[state=active]:text-white data-[state=active]:bg-[#1f2128]"
+              >
+                {tab.charAt(0).toUpperCase() + tab.slice(1)}
+              </TabsTrigger>
+            ))}
           </TabsList>
 
           {/* Elements Tab */}
@@ -153,24 +140,17 @@ const AdminDashboard = () => {
                     />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label className="text-gray-400 mb-1.5">Width</Label>
-                      <Input
-                        type="number"
-                        className="bg-[#1f2128] border-none text-gray-300 focus:ring-2 focus:ring-purple-500"
-                        value={newElement.width}
-                        onChange={(e) => setNewElement({...newElement, width: parseInt(e.target.value)})}
-                      />
-                    </div>
-                    <div>
-                      <Label className="text-gray-400 mb-1.5">Height</Label>
-                      <Input
-                        type="number"
-                        className="bg-[#1f2128] border-none text-gray-300 focus:ring-2 focus:ring-purple-500"
-                        value={newElement.height}
-                        onChange={(e) => setNewElement({...newElement, height: parseInt(e.target.value)})}
-                      />
-                    </div>
+                    {['width', 'height'].map((dim) => (
+                      <div key={dim}>
+                        <Label className="text-gray-400 mb-1.5">{dim.charAt(0).toUpperCase() + dim.slice(1)}</Label>
+                        <Input
+                          type="number"
+                          className="bg-[#1f2128] border-none text-gray-300 focus:ring-2 focus:ring-purple-500"
+                          value={newElement[dim]}
+                          onChange={(e) => setNewElement({...newElement, [dim]: parseInt(e.target.value)})}
+                        />
+                      </div>
+                    ))}
                   </div>
                   <div className="flex items-center space-x-2">
                     <Switch
@@ -281,52 +261,6 @@ const AdminDashboard = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {/* Add New Map Card */}
               <div className="group bg-[#13141a] rounded-xl p-6 border border-[#1f2128] hover:border-purple-500/50 transition-all duration-300">
-                <h3 className="text-xl font-semibold text-white mb-4">Create New Map</h3>
-                <div className="space-y-4 ...400 mb-1.5">Image URL</Label>
-                    <Input
-                      className="bg-[#1f2128] border-none text-gray-300 focus:ring-2 focus:ring-purple-500"
-                      value={newAvatar.imageUrl}
-                      onChange={(e) => setNewAvatar({...newAvatar, imageUrl: e.target.value})}
-                      placeholder="https://example.com/avatar.png"
-                    />
-                  </div>
-                  <Button 
-                    className="w-full bg-purple-600 hover:bg-purple-700 text-white"
-                    onClick={handleCreateAvatar}
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Create Avatar
-                  </Button>
-                </div>
-              </div>
-
-              {/* Existing Avatars */}
-              {avatars.map((avatar) => (
-                <div key={avatar.id} className="group bg-[#13141a] rounded-xl p-6 border border-[#1f2128] hover:border-purple-500/50 transition-all duration-300">
-                  <img 
-                    src={avatar.imageUrl} 
-                    alt={avatar.name}
-                    className="w-full h-40 object-cover rounded-lg mb-4 bg-[#1f2128]"
-                  />
-                  <h3 className="text-lg font-semibold text-white mb-2">{avatar.name}</h3>
-                  <div className="flex space-x-2">
-                    <Button variant="outline" className="flex-1 border-[#1f2128] text-gray-400 hover:text-white hover:bg-[#1f2128]">
-                      Edit
-                    </Button>
-                    <Button variant="outline" className="flex-1 border-[#1f2128] text-red-400 hover:text-white hover:bg-red-600">
-                      Delete
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </TabsContent>
-
-          {/* Maps Tab */}
-          <TabsContent value="maps" className="mt-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {/* Add New Map Card */}
-              <div className="group bg-[#13141a] rounded-xl p-6 border border-[#1f2128] hover:border-purple-500/50 transition-all duration-300">
                 <h3 className="text-xl font-semibold text-white mb-4">Add New Map</h3>
                 <div className="space-y-4">
                   <div>
@@ -335,7 +269,7 @@ const AdminDashboard = () => {
                       className="bg-[#1f2128] border-none text-gray-300 focus:ring-2 focus:ring-purple-500"
                       value={newMap.name}
                       onChange={(e) => setNewMap({...newMap, name: e.target.value})}
-                      placeholder="Zen Garden"
+                      placeholder="Tech Hub Campus"
                     />
                   </div>
                   <div>
@@ -377,7 +311,7 @@ const AdminDashboard = () => {
                   <h3 className="text-lg font-semibold text-white mb-2">{map.name}</h3>
                   <div className="flex justify-between text-gray-400 text-sm mb-4">
                     <span>{map.dimensions}</span>
-                    <span>{map.users} / {map.capacity} Users</span>
+                    <span>{map.users} / {map.capacity} users</span>
                   </div>
                   <div className="flex space-x-2">
                     <Button variant="outline" className="flex-1 border-[#1f2128] text-gray-400 hover:text-white hover:bg-[#1f2128]">
