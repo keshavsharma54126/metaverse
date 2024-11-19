@@ -6,18 +6,27 @@ import { Button } from '../components/Button';
 import { Switch } from '../components/Switch';
 import { Label } from '../components/Label';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+
+type Avatar={
+  id:string,
+  imageUrl:string,
+  name:string,
+}
+
 
 const AdminDashboard = () => {
-  const BACKEND_URL=import.meta.env.BACKEND_URL;
+
+  const navigate = useNavigate()
+  const BACKEND_URL=import.meta.env.VITE_BACKEND_URL;
+  const [avatarName,setAvatarName]=useState("");
+  const [avatarImageUrl,setAvatarImageUrl]=useState("")
   const [elements, setElements] = useState([
     { id: 1, name: 'Office Desk', imageUrl: '', width: 100, height: 100, static: true },
     { id: 2, name: 'Meeting Table', imageUrl: '/api/placeholder/400/300', width: 200, height: 150, static: true }
   ]);
   
-  const [avatars, setAvatars] = useState([
-    { id: 1, name: 'Default Avatar', imageUrl: 'https://csv-upload-3000.s3.us-east-2.amazonaws.com/CasualAvatar_01.png' },
-    { id: 2, name: 'Business Avatar', imageUrl: '/api/placeholder/200/200' }
-  ]);
+  const [avatars, setAvatars] = useState<Avatar[]>([]);
   
   const [maps, setMaps] = useState([
     { id: 1, name: 'Tech Hub Campus', thumbnail: '/api/placeholder/400/300', dimensions: '1920x1080', users: 12, capacity: 50 },
@@ -25,8 +34,9 @@ const AdminDashboard = () => {
   ]);
 
   useEffect(()=>{
+    updateAvatars()
 
-  },[elements,avatars,maps])
+  },[])
 
   const [newElement, setNewElement] = useState({
     imageUrl: '',
@@ -47,25 +57,55 @@ const AdminDashboard = () => {
     defaultElements: []
   });
 
+  const updateAvatars= async()=>{
+    try{
+      const token = localStorage.getItem("authToken")
+      const res = await axios.get(`${BACKEND_URL}/admin/avatars`,{
+        headers:{
+          Authorization:`Bearer ${token}`,
+          "Content-Type": "application/json"
+        }
+      })
+      console.log(res.data.avatars)
+      setAvatars(res.data.avatars)
+
+    }catch(e){
+      console.error(e,"could not retrieve data of avataras")
+    }
+  }
   const handleCreateAvatar = async() => {
    try{
-    if (newAvatar.name && newAvatar.imageUrl) {
-      const res = await axios.post(`${BACKEND_URL}/avatar`,{
-        imageUrl:newAvatar.imageUrl,
-        name:newAvatar.name
+    const token = localStorage.getItem("authToken")
+    console.log(token)
+    if (avatarName && avatarImageUrl) {
+      const res = await axios.post(`${BACKEND_URL}/admin/avatar`,{
+        imageUrl:avatarImageUrl,
+        name:avatarName
+      },{
+        headers:{
+          Authorization:`Bearer ${token}`,
+          "Content-Type": "application/json"
+        }
       })
-      console.log(res.data.avatarId)
+      setAvatarName("")
+      setAvatarImageUrl("")
+      updateAvatars()
       
     }
    }catch(e){
      console.error(e,"error while adding avatar")
    }
-    
-
   };
-  const handleDeleteAvatar=(id:number)=>{
+  const handleDeleteAvatar= async(id:number)=>{
     try{
-      const res = axios.delete(`${BACKEND_URL}/`)
+      const token = localStorage.getItem("authToken")
+       await axios.delete(`${BACKEND_URL}/admin/avatar/${id}`,{
+        headers:{
+          Authorization:`Bearer ${token}`,
+          "Content-Type": "application/json"
+        }
+      })
+      updateAvatars()
     }catch(e){
       console.error(e,"error while deleting avatar")
     }
@@ -90,6 +130,18 @@ const AdminDashboard = () => {
       setNewMap({ thumbnail: '', name: '', dimensions: '', defaultElements: [] });
     }
   };
+  const handleLogout = ()=>{
+    console.log("clicked")
+    try{
+      localStorage.removeItem("authToken")
+      navigate("/adminSignin")
+    }catch(e){
+      console.error(e,"error while logging out")
+    }
+  }
+  if(!localStorage.getItem("authToken")){
+    navigate("/adminSignin")
+  }
 
   return (
     <div className="flex h-screen bg-[#0a0b0f]">
@@ -116,10 +168,11 @@ const AdminDashboard = () => {
             { icon: Star, label: 'Featured' },
             { icon: Clock, label: 'Recent' },
             { icon: Settings, label: 'Settings' },
-            { icon: LogOut, label: 'Logout' }
+            { icon: LogOut, label: 'Logout',onClick:handleLogout }
           ].map((item) => (
             <Button
               key={item.label}
+              onClick={item.onClick}
               variant="ghost"
               className="w-full justify-start text-gray-400 hover:bg-[#1f2128] hover:text-white"
             >
@@ -212,7 +265,7 @@ const AdminDashboard = () => {
                     <Button variant="outline" className="flex-1 border-[#1f2128] text-gray-400 hover:text-white hover:bg-[#1f2128]">
                       Edit
                     </Button>
-                    <Button variant="outline" onClick={handleDeleteAvatar(element.id)} className="flex-1 border-[#1f2128] text-red-400 hover:text-white hover:bg-red-600">
+                    <Button variant="outline"  className="flex-1 border-[#1f2128] text-red-400 hover:text-white hover:bg-red-600">
                       Delete
                     </Button>
                   </div>
@@ -232,8 +285,8 @@ const AdminDashboard = () => {
                     <Label className="text-gray-400 mb-1.5">Avatar Name</Label>
                     <Input
                       className="bg-[#1f2128] border-none text-gray-300 focus:ring-2 focus:ring-purple-500"
-                      value={newAvatar.name}
-                      onChange={(e) => setNewAvatar({...newAvatar, name: e.target.value})}
+                      value={avatarName}
+                      onChange={(e) => setAvatarName(e.target.value)}
                       placeholder="Business Casual"
                     />
                   </div>
@@ -241,8 +294,8 @@ const AdminDashboard = () => {
                     <Label className="text-gray-400 mb-1.5">Image URL</Label>
                     <Input
                       className="bg-[#1f2128] border-none text-gray-300 focus:ring-2 focus:ring-purple-500"
-                      value={newAvatar.imageUrl}
-                      onChange={(e) => setNewAvatar({...newAvatar, imageUrl: e.target.value})}
+                      value={avatarImageUrl}
+                      onChange={(e) =>(setAvatarImageUrl(e.target.value))}
                       placeholder="https://example.com/avatar.png"
                     />
                   </div>
@@ -271,7 +324,9 @@ const AdminDashboard = () => {
                     <Button variant="outline" className="flex-1 border-[#1f2128] text-gray-400 hover:text-white hover:bg-[#1f2128]">
                       Edit
                     </Button>
-                    <Button variant="outline" className="flex-1 border-[#1f2128] text-red-400 hover:text-white hover:bg-red-600">
+                    <Button variant="outline" onClick={()=>{
+                      handleDeleteAvatar(avatar.id)
+                    }} className="flex-1 border-[#1f2128] text-red-400 hover:text-white hover:bg-red-600">
                       Delete
                     </Button>
                   </div>

@@ -1,5 +1,4 @@
-import React from 'react';
-import MapEditor from './MapEditor';
+import MapEditor from '../components/MapEdittor';
 
 const App = () => {
     return (

@@ -8,7 +8,7 @@ export const userMiddleware = (req: any, res: any, next: any) => {
       message:"unauthorized"
     })
   }
-  const token = header.split(" ")[1];
+  const token = header.split(" ")[2];
   if (!token) {
     return res.status(400).json({
       message: "unauthorized",
@@ -19,7 +19,8 @@ export const userMiddleware = (req: any, res: any, next: any) => {
       role: string;
       userId: string;
     };
-    if (decoded.role !== "user") {
+    console.log(decoded)
+    if (decoded.role !== "User") {
       return res.status(400).json({
         message: "unauthorized",
       });
