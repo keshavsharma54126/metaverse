@@ -69,6 +69,33 @@ adminRouter.put("/element/:elementId",adminMiddleware,async(req:any,res:any)=>{
     }
 })
 
+adminRouter.delete("/avatar/:avatarId",adminMiddleware,async(req:any,res:any)=>{
+    try{
+        const existingElement = await client.avatar.findUnique({
+            where:{
+                id:req.params.avatarId
+            }
+        })
+        if(!existingElement){
+            return res.status(400).json({
+                message:"element not found"
+            })
+        }
+        const updatedElement = await client.element.delete({
+            where:{
+                id:req.params.avatarId,
+            },
+        })
+        return res.json({
+            message:"avatar deleted"
+        })
+    }catch(e){
+        return res.status(400).json({
+            message:"internal server error"
+        })
+    }
+})
+
 adminRouter.post("/avatar",adminMiddleware,async(req:any,res:any)=>{
     try{
         const parsedData = CreateAvatarSchema.safeParse(req.body)

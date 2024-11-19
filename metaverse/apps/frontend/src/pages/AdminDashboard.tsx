@@ -1,19 +1,21 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Plus, Search, Star, Clock, Settings, LogOut, Map } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/Tabs';
 import { Input } from '../components/Input';
 import { Button } from '../components/Button';
 import { Switch } from '../components/Switch';
 import { Label } from '../components/Label';
+import axios from 'axios';
 
 const AdminDashboard = () => {
+  const BACKEND_URL=import.meta.env.BACKEND_URL;
   const [elements, setElements] = useState([
-    { id: 1, name: 'Office Desk', imageUrl: '/api/placeholder/400/300', width: 100, height: 100, static: true },
+    { id: 1, name: 'Office Desk', imageUrl: '', width: 100, height: 100, static: true },
     { id: 2, name: 'Meeting Table', imageUrl: '/api/placeholder/400/300', width: 200, height: 150, static: true }
   ]);
   
   const [avatars, setAvatars] = useState([
-    { id: 1, name: 'Default Avatar', imageUrl: '/api/placeholder/200/200' },
+    { id: 1, name: 'Default Avatar', imageUrl: 'https://csv-upload-3000.s3.us-east-2.amazonaws.com/CasualAvatar_01.png' },
     { id: 2, name: 'Business Avatar', imageUrl: '/api/placeholder/200/200' }
   ]);
   
@@ -21,6 +23,10 @@ const AdminDashboard = () => {
     { id: 1, name: 'Tech Hub Campus', thumbnail: '/api/placeholder/400/300', dimensions: '1920x1080', users: 12, capacity: 50 },
     { id: 2, name: 'Zen Garden Office', thumbnail: '/api/placeholder/400/300', dimensions: '1920x1080', users: 8, capacity: 30 }
   ]);
+
+  useEffect(()=>{
+
+  },[elements,avatars,maps])
 
   const [newElement, setNewElement] = useState({
     imageUrl: '',
@@ -41,12 +47,30 @@ const AdminDashboard = () => {
     defaultElements: []
   });
 
-  const handleCreateAvatar = () => {
+  const handleCreateAvatar = async() => {
+   try{
     if (newAvatar.name && newAvatar.imageUrl) {
-      setAvatars([...avatars, { id: avatars.length + 1, ...newAvatar }]);
-      setNewAvatar({ imageUrl: '', name: '' });
+      const res = await axios.post(`${BACKEND_URL}/avatar`,{
+        imageUrl:newAvatar.imageUrl,
+        name:newAvatar.name
+      })
+      console.log(res.data.avatarId)
+      
     }
+   }catch(e){
+     console.error(e,"error while adding avatar")
+   }
+    
+
   };
+  const handleDeleteAvatar=(id:number)=>{
+    try{
+      const res = axios.delete(`${BACKEND_URL}/`)
+    }catch(e){
+      console.error(e,"error while deleting avatar")
+    }
+  }
+
 
   const handleCreateElement = () => {
     if (newElement.imageUrl && newElement.width && newElement.height) {
@@ -188,7 +212,7 @@ const AdminDashboard = () => {
                     <Button variant="outline" className="flex-1 border-[#1f2128] text-gray-400 hover:text-white hover:bg-[#1f2128]">
                       Edit
                     </Button>
-                    <Button variant="outline" className="flex-1 border-[#1f2128] text-red-400 hover:text-white hover:bg-red-600">
+                    <Button variant="outline" onClick={handleDeleteAvatar(element.id)} className="flex-1 border-[#1f2128] text-red-400 hover:text-white hover:bg-red-600">
                       Delete
                     </Button>
                   </div>
