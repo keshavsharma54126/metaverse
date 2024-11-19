@@ -7,6 +7,7 @@ import Dashboard from "./pages/Dashboard";
 import Space from "../src/components/space"
 import AdminSignIn from "./pages/AdminSignIn";
 import AdminDashboard from "./pages/AdminDashboard";
+import MapMaker from "./pages/MapMaker";
 function App() {
   return (
     <>
@@ -19,6 +20,7 @@ function App() {
           <Route path="/dashboard" element={<Dashboard/>}/>
           <Route path="/adminDashboard" element={<AdminDashboard/>}/>
           <Route path="/world" element={<Space/>}/>
+          <Route path="/mapMaker" element={<MapMaker/>} />
         </Routes>
       </BrowserRouter>
     </>

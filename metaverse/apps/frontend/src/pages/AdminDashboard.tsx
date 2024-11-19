@@ -87,6 +87,7 @@ const AdminDashboard = () => {
           "Content-Type": "application/json"
         }
       })
+      console.log(res.data)
       setAvatarName("")
       setAvatarImageUrl("")
       updateAvatars()
@@ -105,6 +106,25 @@ const AdminDashboard = () => {
           "Content-Type": "application/json"
         }
       })
+      updateAvatars()
+    }catch(e){
+      console.error(e,"error while deleting avatar")
+    }
+  }
+
+  const handleUpdateAvatar = async(avatar:Avatar)=>{
+    try{
+      setAvatarName(avatar.name)
+      const token = localStorage.getItem("authToken")
+      const res= await axios.put(`${BACKEND_URL}/admin/${avatar.id}`,{
+        avatarImageUrl
+      },{
+        headers:{
+          Authorization:`Bearer ${token}`,
+          "Content-Type": "application/json"
+        }
+      })
+      console.log(res.data)
       updateAvatars()
     }catch(e){
       console.error(e,"error while deleting avatar")
@@ -262,7 +282,7 @@ const AdminDashboard = () => {
                     <span>{element.static ? 'Static' : 'Dynamic'}</span>
                   </div>
                   <div className="flex space-x-2">
-                    <Button variant="outline" className="flex-1 border-[#1f2128] text-gray-400 hover:text-white hover:bg-[#1f2128]">
+                    <Button  variant="outline" className="flex-1 border-[#1f2128] text-gray-400 hover:text-white hover:bg-[#1f2128]">
                       Edit
                     </Button>
                     <Button variant="outline"  className="flex-1 border-[#1f2128] text-red-400 hover:text-white hover:bg-red-600">
@@ -306,6 +326,7 @@ const AdminDashboard = () => {
                     <Plus className="w-4 h-4 mr-2" />
                     Create Avatar
                   </Button>
+                  
                 </div>
               </div>
 
@@ -321,7 +342,7 @@ const AdminDashboard = () => {
                   </div>
                   <h3 className="text-lg font-semibold text-white text-center mb-4">{avatar.name}</h3>
                   <div className="flex space-x-2">
-                    <Button variant="outline" className="flex-1 border-[#1f2128] text-gray-400 hover:text-white hover:bg-[#1f2128]">
+                    <Button onClick={()=>{setAvatarName(avatar.name)}}variant="outline" className="flex-1 border-[#1f2128] text-gray-400 hover:text-white hover:bg-[#1f2128]">
                       Edit
                     </Button>
                     <Button variant="outline" onClick={()=>{
