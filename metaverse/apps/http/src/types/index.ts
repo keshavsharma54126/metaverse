@@ -33,6 +33,7 @@ export const DeleteElementSchema = z.object({
 });
 
 export const CreateElementSchema = z.object({
+  name: z.string(),
   imageUrl: z.string(),
   width: z.number(),
   height: z.number(),
@@ -40,7 +41,11 @@ export const CreateElementSchema = z.object({
 });
 
 export const UpdateElementSchema = z.object({
+  name: z.string(),
   imageUrl: z.string(),
+  width: z.number(),
+  height: z.number(),
+  static: z.boolean(),
 });
 
 export const CreateAvatarSchema = z.object({

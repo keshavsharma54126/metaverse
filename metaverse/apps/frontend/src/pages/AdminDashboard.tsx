@@ -7,6 +7,8 @@ import { Switch } from '../components/Switch';
 import { Label } from '../components/Label';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 type Avatar={
   id:number,
@@ -36,11 +38,7 @@ const AdminDashboard = () => {
   const [elementHeight,setElementHeight]=useState(0)
   const [elementStatic,setElementStatic]=useState(true)
   const [editElement,setEditElement]=useState<Element|null>()
-  const [elements, setElements] = useState([
-    { id: 1, name: 'Office Desk', imageUrl: '', width: 100, height: 100, static: true },
-    { id: 2, name: 'Meeting Table', imageUrl: '/api/placeholder/400/300', width: 200, height: 150, static: true }
-  ]);
-  
+  const [elements, setElements] = useState<Element[]>([]);
   const [avatars, setAvatars] = useState<Avatar[]>([]);
   
   const [maps, setMaps] = useState([
@@ -50,20 +48,10 @@ const AdminDashboard = () => {
 
   useEffect(()=>{
     updateAvatars()
-
+    updateElements()
   },[])
 
-  const [newElement, setNewElement] = useState({
-    imageUrl: '',
-    width: 0,
-    height: 0,
-    static: true
-  });
-  
-  const [newAvatar, setNewAvatar] = useState({
-    imageUrl: '',
-    name: ''
-  });
+
   
   const [newMap, setNewMap] = useState({
     thumbnail: '',
@@ -106,10 +94,11 @@ const AdminDashboard = () => {
       setAvatarName("")
       setAvatarImageUrl("")
       updateAvatars()
-      
+      toast.success("Avatar created successfully!");
     }
    }catch(e){
      console.error(e,"error while adding avatar")
+     toast.error("Error while adding avatar.");
    }
   };
   const handleDeleteAvatar= async(id:number)=>{
@@ -150,11 +139,93 @@ const AdminDashboard = () => {
     }
   }
 
+  const updateElements = async () => {
+    try {
+      const token = localStorage.getItem("authToken");
+      const res = await axios.get(`${BACKEND_URL}/admin/elements`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json"
+        }
+      });
+      console.log(res.data.elements);
+      setElements(res.data.elements);
+    } catch (e) {
+      console.error(e, "could not retrieve data of elements");
+    }
+  };
 
-  const handleCreateElement = () => {
-    if (newElement.imageUrl && newElement.width && newElement.height) {
-      setElements([...elements, { id: elements.length + 1, name: `Element ${elements.length + 1}`, ...newElement }]);
-      setNewElement({ imageUrl: '', width: 0, height: 0, static: true });
+  const handleCreateElement = async () => {
+    try {
+      const token = localStorage.getItem("authToken");
+      if (elementName && elementHeight && elementHeight && elementImageUrl) {
+        const res = await axios.post(`${BACKEND_URL}/admin/element`, {
+          name:elementName,
+          imageUrl: elementImageUrl,
+          width: elementWidth,
+          height: elementHeight,
+          static: elementStatic
+        }, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json"
+          }
+        });
+        console.log(res.data);
+        setElementName("")
+        setElementImageUrl("")
+        setElementWidth(0)
+        setElementHeight(0)
+        setElementStatic(true)
+        updateElements();
+        toast.success("Element created successfully!");
+      }
+    } catch (e) {
+      console.error(e, "error while adding element");
+      toast.error("Error while adding element.");
+    }
+  };
+
+  const handleUpdateElement = async (element: Element) => {
+    try {
+      const token = localStorage.getItem("authToken");
+      const res = await axios.put(`${BACKEND_URL}/admin/element/${element.id}`, {
+        name:elementName,
+        imageUrl: elementImageUrl,
+        width: elementWidth,
+        height: elementHeight,
+        static: elementStatic
+      }, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json"
+        }
+      });
+      console.log(res.data);
+      setEditElement(null)
+      setElementName("")
+      setElementImageUrl("")
+      setElementWidth(0)
+      setElementHeight(0)
+      setElementStatic(true)
+      updateElements();
+    } catch (e) {
+      console.error(e, "error while updating element");
+    }
+  };
+
+  const handleDeleteElement = async (id: number) => {
+    try {
+      const token = localStorage.getItem("authToken");
+      await axios.delete(`${BACKEND_URL}/admin/element/${id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json"
+        }
+      });
+      updateElements();
+    } catch (e) {
+      console.error(e, "error while deleting element");
     }
   };
 
@@ -167,6 +238,7 @@ const AdminDashboard = () => {
         capacity: 50 
       }]);
       setNewMap({ thumbnail: '', name: '', dimensions: '', defaultElements: [] });
+      toast.success("Map created successfully!");
     }
   };
   const handleLogout = ()=>{
@@ -181,11 +253,13 @@ const AdminDashboard = () => {
   if(!localStorage.getItem("authToken")){
     navigate("/adminSignin")
   }
-
+  if(!localStorage.getItem("authToken")){
+    navigate("/adminSignin")
+  }
   return (
-    <div className="flex h-screen bg-[#0a0b0f]">
+    <div className="flex h-screen bg-[#0a0b0f] flex-col md:flex-row">
       {/* Sidebar */}
-      <div className="w-64 bg-[#13141a] p-4 border-r border-[#1f2128]">
+      <div className="w-full md:w-64 bg-[#13141a] p-4 border-r border-[#1f2128] shadow-lg">
         <div className="flex items-center space-x-2 mb-8">
           <div className="w-10 h-10 bg-purple-600 rounded-lg flex items-center justify-center">
             <span className="text-white font-bold">M</span>
@@ -223,8 +297,8 @@ const AdminDashboard = () => {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 p-8 overflow-auto">
-        <h1 className="text-2xl font-bold text-white mb-6">Admin Dashboard</h1>
+      <div className="flex-1 p-4 md:p-8 overflow-auto">
+        <h1 className="text-2xl md:text-3xl font-bold text-white mb-6">Admin Dashboard</h1>
         
         <Tabs defaultValue="elements" className="w-full">
           <TabsList className="bg-[#13141a] border-b border-[#1f2128] p-0">
@@ -232,7 +306,7 @@ const AdminDashboard = () => {
               <TabsTrigger 
                 key={tab}
                 value={tab} 
-                className="px-6 py-3 text-gray-400 data-[state=active]:text-white data-[state=active]:bg-[#1f2128]"
+                className="px-4 md:px-6 py-2 md:py-3 text-gray-400 data-[state=active]:text-white data-[state=active]:bg-[#1f2128] hover:bg-[#1f2128] transition duration-200"
               >
                 {tab.charAt(0).toUpperCase() + tab.slice(1)}
               </TabsTrigger>
@@ -240,56 +314,85 @@ const AdminDashboard = () => {
           </TabsList>
 
           {/* Elements Tab */}
-          <TabsContent value="elements" className="mt-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <TabsContent value="elements" className="mt-4 md:mt-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
               {/* Add New Element Card */}
-              <div className="group bg-[#13141a] rounded-xl p-6 border border-[#1f2128] hover:border-purple-500/50 transition-all duration-300">
+              <div className="group bg-[#13141a] rounded-xl p-4 md:p-6 border border-[#1f2128] hover:border-purple-500 transition-all duration-300 shadow-md">
                 <h3 className="text-xl font-semibold text-white mb-4">Add New Element</h3>
                 <div className="space-y-4">
+                <div>
+                    <Label className="text-gray-400 mb-1.5">Element Name</Label>
+                    <Input
+                      className="bg-[#1f2128] border-none text-gray-300 focus:ring-2 focus:ring-purple-500"
+                      value={elementName}
+                      onChange={(e) => setElementName(e.target.value)}
+                      placeholder="Office Desk"
+                    />
+                  </div>
                   <div>
                     <Label className="text-gray-400 mb-1.5">Image URL</Label>
                     <Input
                       className="bg-[#1f2128] border-none text-gray-300 focus:ring-2 focus:ring-purple-500"
-                      value={newElement.imageUrl}
-                      onChange={(e) => setNewElement({...newElement, imageUrl: e.target.value})}
+                      value={elementImageUrl}
+                      onChange={(e) => setElementImageUrl(e.target.value)}
                       placeholder="https://example.com/image.png"
                     />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
-                    {['width', 'height'].map((dim) => (
-                      <div key={dim}>
-                        <Label className="text-gray-400 mb-1.5">{dim.charAt(0).toUpperCase() + dim.slice(1)}</Label>
+                    
+                      <div key="Width">
+                        <Label className="text-gray-400 mb-1.5">Width</Label>
                         <Input
                           type="number"
                           className="bg-[#1f2128] border-none text-gray-300 focus:ring-2 focus:ring-purple-500"
-                          value={newElement[dim]}
-                          onChange={(e) => setNewElement({...newElement, [dim]: parseInt(e.target.value)})}
+                          value={elementWidth}
+                          onChange={(e) => setElementWidth(parseInt(e.target.value))}
                         />
                       </div>
-                    ))}
+                      <div key="Height">
+                        <Label className="text-gray-400 mb-1.5">Height</Label>
+                        <Input
+                          type="number"
+                          className="bg-[#1f2128] border-none text-gray-300 focus:ring-2 focus:ring-purple-500"
+                          value={elementHeight}
+                          onChange={(e) => setElementHeight(parseInt(e.target.value))}
+                        />
+                      </div>
+                  
                   </div>
                   <div className="flex items-center space-x-2">
                     <Switch
                       id="static"
-                      checked={newElement.static}
-                      onCheckedChange={(checked) => setNewElement({...newElement, static: checked})}
-                      className="data-[state=checked]:bg-purple-500"
+                      checked={elementStatic}
+                      onCheckedChange={(checked) => setElementStatic(checked)}
+                      className="data-[state=checked]:bg-purple-500 bg-gray-400"
                     />
                     <Label htmlFor="static" className="text-gray-400">Static Element</Label>
                   </div>
+                  <div className="flex space-x-2 justify-end ">
                   <Button 
-                    className="w-full bg-purple-600 hover:bg-purple-700 text-white"
+                    className="w-full bg-purple-600 hover:bg-purple-700 text-white transition duration-200"
                     onClick={handleCreateElement}
                   >
                     <Plus className="w-4 h-4 mr-2" />
                     Create Element
                   </Button>
+                  <Button 
+                    className="w-full bg-purple-600 hover:bg-purple-700 text-white"
+                    onClick={()=>{
+                      if (editElement) handleUpdateElement(editElement);
+                    }}
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Update Element
+                  </Button>
+                  </div>
                 </div>
               </div>
 
               {/* Existing Elements */}
               {elements.map((element) => (
-                <div key={element.id} className="group bg-[#13141a] rounded-xl p-6 border border-[#1f2128] hover:border-purple-500/50 transition-all duration-300">
+                <div key={element.id} className="group bg-[#13141a] rounded-xl p-4 md:p-6 border border-[#1f2128] hover:border-purple-500 transition-all duration-300 shadow-md">
                   <img 
                     src={element.imageUrl} 
                     alt={element.name}
@@ -301,10 +404,18 @@ const AdminDashboard = () => {
                     <span>{element.static ? 'Static' : 'Dynamic'}</span>
                   </div>
                   <div className="flex space-x-2">
-                    <Button  variant="outline" className="flex-1 border-[#1f2128] text-gray-400 hover:text-white hover:bg-[#1f2128]">
+                    <Button  onClick={()=>{
+                      setEditElement(element)
+                      setElementName(element.name)
+                      setElementImageUrl(element.imageUrl)
+                      setElementWidth(element.width)
+                      setElementHeight(element.height)
+                      setElementStatic(element.static)
+                      setEditElement(element)
+                    }} variant="outline" className="flex-1 border-[#1f2128] text-gray-400 hover:text-white hover:bg-[#1f2128] transition duration-200">
                       Edit
                     </Button>
-                    <Button variant="outline"  className="flex-1 border-[#1f2128] text-red-400 hover:text-white hover:bg-red-600">
+                    <Button onClick={()=>handleDeleteElement(element.id)} variant="outline"  className="flex-1 border-[#1f2128] text-red-400 hover:text-white hover:bg-red-600 transition duration-200">
                       Delete
                     </Button>
                   </div>
@@ -314,10 +425,10 @@ const AdminDashboard = () => {
           </TabsContent>
 
           {/* Avatars Tab */}
-          <TabsContent value="avatars" className="mt-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <TabsContent value="avatars" className="mt-4 md:mt-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
               {/* Add New Avatar Card */}
-              <div className="group bg-[#13141a] rounded-xl p-6 border border-[#1f2128] hover:border-purple-500/50 transition-all duration-300">
+              <div className="group bg-[#13141a] rounded-xl p-4 md:p-6 border border-[#1f2128] hover:border-purple-500 transition-all duration-300 shadow-md">
                 <h3 className="text-xl font-semibold text-white mb-4">Add New Avatar</h3>
                 <div className="space-y-4">
                   <div>
@@ -339,7 +450,7 @@ const AdminDashboard = () => {
                     />
                   </div>
                   <Button 
-                    className="w-full bg-purple-600 hover:bg-purple-700 text-white"
+                    className="w-full bg-purple-600 hover:bg-purple-700 text-white transition duration-200"
                     onClick={handleCreateAvatar}
                   >
                     <Plus className="w-4 h-4 mr-2" />
@@ -358,7 +469,7 @@ const AdminDashboard = () => {
 
               {/* Existing Avatars */}
               {avatars.map((avatar) => (
-                <div key={avatar.id} className="group bg-[#13141a] rounded-xl p-6 border border-[#1f2128] hover:border-purple-500/50 transition-all duration-300">
+                <div key={avatar.id} className="group bg-[#13141a] rounded-xl p-4 md:p-6 border border-[#1f2128] hover:border-purple-500 transition-all duration-300 shadow-md">
                   <div className="relative w-32 h-32 mx-auto mb-4">
                     <img 
                       src={avatar.imageUrl} 
@@ -372,12 +483,12 @@ const AdminDashboard = () => {
                       setEditAvatar(avatar);
                       setAvatarName(avatar.name)
                       setAvatarImageUrl(avatar.imageUrl)
-                    }} variant="outline" className="flex-1 border-[#1f2128] text-gray-400 hover:text-white hover:bg-[#1f2128]">
+                    }} variant="outline" className="flex-1 border-[#1f2128] text-gray-400 hover:text-white hover:bg-[#1f2128] transition duration-200">
                       Edit
                     </Button>
                     <Button variant="outline" onClick={()=>{
                       handleDeleteAvatar(avatar.id)
-                    }} className="flex-1 border-[#1f2128] text-red-400 hover:text-white hover:bg-red-600">
+                    }} className="flex-1 border-[#1f2128] text-red-400 hover:text-white hover:bg-red-600 transition duration-200">
                       Delete
                     </Button>
                   </div>
@@ -387,10 +498,10 @@ const AdminDashboard = () => {
           </TabsContent>
 
           {/* Maps Tab */}
-          <TabsContent value="maps" className="mt-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <TabsContent value="maps" className="mt-4 md:mt-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
               {/* Add New Map Card */}
-              <div className="group bg-[#13141a] rounded-xl p-6 border border-[#1f2128] hover:border-purple-500/50 transition-all duration-300">
+              <div className="group bg-[#13141a] rounded-xl p-4 md:p-6 border border-[#1f2128] hover:border-purple-500 transition-all duration-300 shadow-md">
                 <h3 className="text-xl font-semibold text-white mb-4">Add New Map</h3>
                 <div className="space-y-4">
                   <div>
@@ -421,7 +532,7 @@ const AdminDashboard = () => {
                     />
                   </div>
                   <Button 
-                    className="w-full bg-purple-600 hover:bg-purple-700 text-white"
+                    className="w-full bg-purple-600 hover:bg-purple-700 text-white transition duration-200"
                     onClick={handleCreateMap}
                   >
                     <Plus className="w-4 h-4 mr-2" />
@@ -432,7 +543,7 @@ const AdminDashboard = () => {
 
               {/* Existing Maps */}
               {maps.map((map) => (
-                <div key={map.id} className="group bg-[#13141a] rounded-xl p-6 border border-[#1f2128] hover:border-purple-500/50 transition-all duration-300">
+                <div key={map.id} className="group bg-[#13141a] rounded-xl p-4 md:p-6 border border-[#1f2128] hover:border-purple-500 transition-all duration-300 shadow-md">
                   <img 
                     src={map.thumbnail} 
                     alt={map.name}
@@ -444,10 +555,10 @@ const AdminDashboard = () => {
                     <span>{map.users} / {map.capacity} users</span>
                   </div>
                   <div className="flex space-x-2">
-                    <Button variant="outline" className="flex-1 border-[#1f2128] text-gray-400 hover:text-white hover:bg-[#1f2128]">
+                    <Button variant="outline" className="flex-1 border-[#1f2128] text-gray-400 hover:text-white hover:bg-[#1f2128] transition duration-200">
                       Edit
                     </Button>
-                    <Button variant="outline" className="flex-1 border-[#1f2128] text-red-400 hover:text-white hover:bg-red-600">
+                    <Button variant="outline" className="flex-1 border-[#1f2128] text-red-400 hover:text-white hover:bg-red-600 transition duration-200">
                       Delete
                     </Button>
                   </div>
@@ -457,6 +568,8 @@ const AdminDashboard = () => {
           </TabsContent>
         </Tabs>
       </div>
+
+      <ToastContainer />
     </div>
   );
 };

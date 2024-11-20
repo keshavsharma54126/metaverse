@@ -48,6 +48,7 @@ model Space {
 
 model spaceElements {
   id        String @id @unique @default(cuid())
+  name      String
   elementId String
   spaceId   String
   x         Int
@@ -58,6 +59,7 @@ model spaceElements {
 
 model Element {
   id       String @id @unique @default(cuid())
+  name     String
   width    Int
   height   Int
   static   Boolean
@@ -77,7 +79,8 @@ model Map {
 }
 
 model mapElements {
-  id        String  @id @unique @default(cuid())
+  id        String  @id @unique @default(cuid())  
+  name      String
   mapId     String
   elementId String
   x         Int?
