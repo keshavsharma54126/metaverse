@@ -54,14 +54,15 @@ export const CreateAvatarSchema = z.object({
 });
 
 export const CreateMapSchema = z.object({
+ 
   thumbnail: z.string(),
-  dimessions: z.string(),
+  dimensions: z.string(),
   name:z.string(),
-  defaultElements: z.array(
-    z.object({
-      elementId: z.string(),
-      x: z.number(),
-      y: z.number(),
-    })
-  ),
+
+});
+
+export const UpdateMapSchema = z.object({
+  thumbnail: z.string(),
+  dimensions: z.string(),
+  name: z.string(),
 });

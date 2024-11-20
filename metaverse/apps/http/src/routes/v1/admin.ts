@@ -223,28 +223,41 @@ adminRouter.get("/maps", adminMiddleware, async (req: any, res: any) => {
       id: m.id,
       name: m.name,
       thumbnail: m.thumbnail,
-      dimensions: m.dimensions,
-      capacity: m.capacity,
-      users: m.users || 0
+      width: m.width,
+      height: m.height,
+     
     })),
   });
 });
 
 adminRouter.post("/map", adminMiddleware, async (req: any, res: any) => {
   const parsedData = CreateMapSchema.safeParse(req.body);
+  
   if (!parsedData) {
     return res.status(400).json({
       message: "invalid data"
     });
   }
   try {
+    if (!parsedData.data?.dimensions) {
+      throw new Error("Dimensions are required");
+    }
+    const dimensions = parsedData.data.dimensions.split("x");
+    if (dimensions.length !== 2) {
+      throw new Error("Invalid dimensions format");
+    }
+    const height = parseInt(dimensions[1]);
+    const width = parseInt(dimensions[0]);
+    if (isNaN(height) || isNaN(width)) {
+      throw new Error("Invalid dimensions values");
+    }
     const map = await client.map.create({
       data: {
-        name: parsedData.data?.name!,
+        name: parsedData.data.name!,
         thumbnail: parsedData.data?.thumbnail!,
-        dimensions: parsedData.data?.dimensions!,
-        capacity: parsedData.data?.capacity || 50,
-        users: 0
+        width: width,
+        height: height,
+       
       }
     });
     return res.json({
@@ -259,17 +272,34 @@ adminRouter.post("/map", adminMiddleware, async (req: any, res: any) => {
 
 adminRouter.put("/map/:mapId", adminMiddleware, async (req: any, res: any) => {
   const parsedData = UpdateMapSchema.safeParse(req.body);
+  
   if (!parsedData) {
     return res.status(400).json({
       message: "invalid data"
     });
   }
+
   try {
+     
+        if (!parsedData.data?.dimensions) {
+          throw new Error("Dimensions are required");
+        }
+        const dimensions = parsedData.data.dimensions.split("x");
+        if (dimensions.length !== 2) {
+          throw new Error("Invalid dimensions format");
+        }
+        const height = parseInt(dimensions[1]);
+        const width = parseInt(dimensions[0]);
+        
+        if (isNaN(height) || isNaN(width)) {
+          throw new Error("Invalid dimensions values");
+        }
     const existingMap = await client.map.findUnique({
       where: {
         id: req.params.mapId
       }
     });
+  
     if (!existingMap) {
       return res.status(400).json({
         message: "map not found"
@@ -282,15 +312,15 @@ adminRouter.put("/map/:mapId", adminMiddleware, async (req: any, res: any) => {
       data: {
         name: parsedData.data?.name!,
         thumbnail: parsedData.data?.thumbnail!,
-        dimensions: parsedData.data?.dimensions!,
-        capacity: parsedData.data?.capacity!
+        width: width,
+        height: height,
       }
     });
     return res.json({
       id: updatedMap.id
     });
   } catch (e) {
-    return res.status(400).json({
+    return res.status(500).json({
       message: "internal server error"
     });
   }

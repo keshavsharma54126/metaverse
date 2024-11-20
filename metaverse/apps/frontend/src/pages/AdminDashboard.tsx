@@ -23,6 +23,14 @@ type Element={
   height:number,
   static:boolean
 }
+type Map = {
+  id: number;
+  thumbnail: string;
+  name: string;
+  width:number,
+  height:number,
+  users: number;
+}
 
 
 const AdminDashboard = () => {
@@ -41,24 +49,21 @@ const AdminDashboard = () => {
   const [elements, setElements] = useState<Element[]>([]);
   const [avatars, setAvatars] = useState<Avatar[]>([]);
   
-  const [maps, setMaps] = useState([
-    { id: 1, name: 'Tech Hub Campus', thumbnail: '/api/placeholder/400/300', dimensions: '1920x1080', users: 12, capacity: 50 },
-    { id: 2, name: 'Zen Garden Office', thumbnail: '/api/placeholder/400/300', dimensions: '1920x1080', users: 8, capacity: 30 }
-  ]);
+  const [maps, setMaps] = useState<Map[]>([]);
+  const [editMap, setEditMap] = useState<Map | null>(null);
+  const [mapName, setMapName] = useState("");
+  const [mapThumbnail, setMapThumbnail] = useState("");
+  const [mapDimensions, setMapDimensions] = useState("");
+ 
 
   useEffect(()=>{
     updateAvatars()
     updateElements()
+    updateMaps()
   },[])
 
 
-  
-  const [newMap, setNewMap] = useState({
-    thumbnail: '',
-    name: '',
-    dimensions: '',
-    defaultElements: []
-  });
+
 
   const updateAvatars= async()=>{
     try{
@@ -229,18 +234,90 @@ const AdminDashboard = () => {
     }
   };
 
-  const handleCreateMap = () => {
-    if (newMap.name && newMap.thumbnail && newMap.dimensions) {
-      setMaps([...maps, { 
-        id: maps.length + 1, 
-        ...newMap, 
-        users: 0, 
-        capacity: 50 
-      }]);
-      setNewMap({ thumbnail: '', name: '', dimensions: '', defaultElements: [] });
-      toast.success("Map created successfully!");
+  const updateMaps = async () => {
+    try {
+      const token = localStorage.getItem("authToken");
+      const res = await axios.get(`${BACKEND_URL}/admin/maps`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json"
+        }
+      });
+      setMaps(res.data.maps);
+    } catch (e) {
+      console.error(e, "could not retrieve maps");
     }
   };
+
+  const handleCreateMap = async () => {
+    try {
+      const token = localStorage.getItem("authToken");
+      if (mapName && mapThumbnail && mapDimensions) {
+        const res = await axios.post(`${BACKEND_URL}/admin/map`, {
+          name: mapName,
+          thumbnail: mapThumbnail,
+          dimensions: mapDimensions,
+  
+        }, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json"
+          }
+        });
+        console.log(res.data)
+        setMapName("");
+        setMapThumbnail("");
+        setMapDimensions("");
+        updateMaps();
+        toast.success("Map created successfully!");
+      }
+    } catch (e) {
+      console.error(e, "error while adding map");
+      toast.error("Error while adding map.");
+    }
+  };
+
+  const handleUpdateMap = async (map: Map) => {
+    try {
+      const token = localStorage.getItem("authToken");
+      const res = await axios.put(`${BACKEND_URL}/admin/map/${map.id}`, {
+        name: mapName,
+        thumbnail: mapThumbnail,
+        dimensions: mapDimensions,
+       
+      }, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json"
+        }
+      });
+      console.log(res.data)
+      setEditMap(null);
+      setMapName("");
+      setMapThumbnail("");
+      setMapDimensions("");
+     
+      updateMaps();
+    } catch (e) {
+      console.error(e, "error while updating map");
+    }
+  };
+
+  const handleDeleteMap = async (id: number) => {
+    try {
+      const token = localStorage.getItem("authToken");
+      await axios.delete(`${BACKEND_URL}/admin/map/${id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json"
+        }
+      });
+      updateMaps();
+    } catch (e) {
+      console.error(e, "error while deleting map");
+    }
+  };
+
   const handleLogout = ()=>{
     console.log("clicked")
     try{
@@ -257,17 +334,20 @@ const AdminDashboard = () => {
     navigate("/adminSignin")
   }
   return (
-    <div className="flex h-screen bg-[#0a0b0f] flex-col md:flex-row">
-      {/* Sidebar */}
-      <div className="w-full md:w-64 bg-[#13141a] p-4 border-r border-[#1f2128] shadow-lg">
-        <div className="flex items-center space-x-2 mb-8">
-          <div className="w-10 h-10 bg-purple-600 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold">M</span>
+    <div className="flex flex-col md:flex-row h-screen bg-[#0a0b0f]">
+      {/* Sidebar - Updated for mobile responsiveness */}
+      <div className="w-full md:w-64 bg-[#13141a] p-4 border-b md:border-r border-[#1f2128] shadow-lg">
+        <div className="flex items-center justify-between md:justify-start space-x-2 mb-8">
+          <div className="flex items-center space-x-2">
+            <div className="w-10 h-10 bg-purple-600 rounded-lg flex items-center justify-center">
+              <span className="text-white font-bold">M</span>
+            </div>
+            <span className="text-white text-xl font-semibold">MetaSpace</span>
           </div>
-          <span className="text-white text-xl font-semibold">MetaSpace</span>
+          {/* Mobile menu button could go here if needed */}
         </div>
 
-        <div className="relative mb-6">
+        <div className="relative mb-6 hidden md:block">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 w-4 h-4" />
           <Input 
             className="w-full pl-10 bg-[#1f2128] border-none text-gray-300 placeholder-gray-500 focus:ring-2 focus:ring-purple-500" 
@@ -275,47 +355,47 @@ const AdminDashboard = () => {
           />
         </div>
 
-        <div className="space-y-1">
+        <div className="flex md:block overflow-x-auto md:overflow-x-visible space-x-2 md:space-x-0 md:space-y-1">
           {[
             { icon: Map, label: 'Manage Spaces' },
             { icon: Star, label: 'Featured' },
             { icon: Clock, label: 'Recent' },
             { icon: Settings, label: 'Settings' },
-            { icon: LogOut, label: 'Logout',onClick:handleLogout }
+            { icon: LogOut, label: 'Logout', onClick: handleLogout }
           ].map((item) => (
             <Button
               key={item.label}
               onClick={item.onClick}
               variant="ghost"
-              className="w-full justify-start text-gray-400 hover:bg-[#1f2128] hover:text-white"
+              className="min-w-[120px] md:w-full justify-start text-gray-400 hover:bg-[#1f2128] hover:text-white"
             >
               <item.icon className="mr-2 h-4 w-4" />
-              {item.label}
+              <span className="hidden md:inline">{item.label}</span>
             </Button>
           ))}
         </div>
       </div>
 
-      {/* Main Content */}
+      {/* Main Content - Updated for better spacing on mobile */}
       <div className="flex-1 p-4 md:p-8 overflow-auto">
         <h1 className="text-2xl md:text-3xl font-bold text-white mb-6">Admin Dashboard</h1>
         
         <Tabs defaultValue="elements" className="w-full">
-          <TabsList className="bg-[#13141a] border-b border-[#1f2128] p-0">
+          <TabsList className="bg-[#13141a] border-b border-[#1f2128] p-0 overflow-x-auto flex-nowrap">
             {['elements', 'avatars', 'maps'].map((tab) => (
               <TabsTrigger 
                 key={tab}
                 value={tab} 
-                className="px-4 md:px-6 py-2 md:py-3 text-gray-400 data-[state=active]:text-white data-[state=active]:bg-[#1f2128] hover:bg-[#1f2128] transition duration-200"
+                className="px-3 md:px-6 py-2 md:py-3 text-sm md:text-base text-gray-400 data-[state=active]:text-white data-[state=active]:bg-[#1f2128] hover:bg-[#1f2128] transition duration-200 whitespace-nowrap"
               >
                 {tab.charAt(0).toUpperCase() + tab.slice(1)}
               </TabsTrigger>
             ))}
           </TabsList>
 
-          {/* Elements Tab */}
+          {/* Update the grid layouts in TabsContent */}
           <TabsContent value="elements" className="mt-4 md:mt-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
               {/* Add New Element Card */}
               <div className="group bg-[#13141a] rounded-xl p-4 md:p-6 border border-[#1f2128] hover:border-purple-500 transition-all duration-300 shadow-md">
                 <h3 className="text-xl font-semibold text-white mb-4">Add New Element</h3>
@@ -426,7 +506,7 @@ const AdminDashboard = () => {
 
           {/* Avatars Tab */}
           <TabsContent value="avatars" className="mt-4 md:mt-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
               {/* Add New Avatar Card */}
               <div className="group bg-[#13141a] rounded-xl p-4 md:p-6 border border-[#1f2128] hover:border-purple-500 transition-all duration-300 shadow-md">
                 <h3 className="text-xl font-semibold text-white mb-4">Add New Avatar</h3>
@@ -499,7 +579,7 @@ const AdminDashboard = () => {
 
           {/* Maps Tab */}
           <TabsContent value="maps" className="mt-4 md:mt-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
               {/* Add New Map Card */}
               <div className="group bg-[#13141a] rounded-xl p-4 md:p-6 border border-[#1f2128] hover:border-purple-500 transition-all duration-300 shadow-md">
                 <h3 className="text-xl font-semibold text-white mb-4">Add New Map</h3>
@@ -508,8 +588,8 @@ const AdminDashboard = () => {
                     <Label className="text-gray-400 mb-1.5">Map Name</Label>
                     <Input
                       className="bg-[#1f2128] border-none text-gray-300 focus:ring-2 focus:ring-purple-500"
-                      value={newMap.name}
-                      onChange={(e) => setNewMap({...newMap, name: e.target.value})}
+                      value={mapName}
+                      onChange={(e) => setMapName(e.target.value)}
                       placeholder="Tech Hub Campus"
                     />
                   </div>
@@ -517,8 +597,8 @@ const AdminDashboard = () => {
                     <Label className="text-gray-400 mb-1.5">Thumbnail URL</Label>
                     <Input
                       className="bg-[#1f2128] border-none text-gray-300 focus:ring-2 focus:ring-purple-500"
-                      value={newMap.thumbnail}
-                      onChange={(e) => setNewMap({...newMap, thumbnail: e.target.value})}
+                      value={mapThumbnail}
+                      onChange={(e) => setMapThumbnail(e.target.value)}
                       placeholder="https://example.com/thumbnail.png"
                     />
                   </div>
@@ -526,18 +606,30 @@ const AdminDashboard = () => {
                     <Label className="text-gray-400 mb-1.5">Dimensions</Label>
                     <Input
                       className="bg-[#1f2128] border-none text-gray-300 focus:ring-2 focus:ring-purple-500"
-                      value={newMap.dimensions}
-                      onChange={(e) => setNewMap({...newMap, dimensions: e.target.value})}
+                      value={mapDimensions}
+                      onChange={(e) => setMapDimensions(e.target.value)}
                       placeholder="1920x1080"
                     />
                   </div>
-                  <Button 
-                    className="w-full bg-purple-600 hover:bg-purple-700 text-white transition duration-200"
-                    onClick={handleCreateMap}
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Create Map
-                  </Button>
+                  
+                  <div className="flex space-x-2">
+                    <Button 
+                      className="w-full bg-purple-600 hover:bg-purple-700 text-white transition duration-200"
+                      onClick={handleCreateMap}
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Create Map
+                    </Button>
+                    <Button 
+                      className="w-full bg-purple-600 hover:bg-purple-700 text-white"
+                      onClick={() => {
+                        if (editMap) handleUpdateMap(editMap);
+                      }}
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Update Map
+                    </Button>
+                  </div>
                 </div>
               </div>
 
@@ -551,14 +643,28 @@ const AdminDashboard = () => {
                   />
                   <h3 className="text-lg font-semibold text-white mb-2">{map.name}</h3>
                   <div className="flex justify-between text-gray-400 text-sm mb-4">
-                    <span>{map.dimensions}</span>
-                    <span>{map.users} / {map.capacity} users</span>
+                    <span>{map.width}x{map.height}</span>
+                    
                   </div>
                   <div className="flex space-x-2">
-                    <Button variant="outline" className="flex-1 border-[#1f2128] text-gray-400 hover:text-white hover:bg-[#1f2128] transition duration-200">
+                    <Button 
+                      onClick={() => {
+                        setEditMap(map);
+                        setMapName(map.name);
+                        setMapThumbnail(map.thumbnail);
+                        setMapDimensions(`${map.width}x${map.height}`);
+                        
+                      }} 
+                      variant="outline" 
+                      className="flex-1 border-[#1f2128] text-gray-400 hover:text-white hover:bg-[#1f2128] transition duration-200"
+                    >
                       Edit
                     </Button>
-                    <Button variant="outline" className="flex-1 border-[#1f2128] text-red-400 hover:text-white hover:bg-red-600 transition duration-200">
+                    <Button 
+                      onClick={() => handleDeleteMap(map.id)} 
+                      variant="outline" 
+                      className="flex-1 border-[#1f2128] text-red-400 hover:text-white hover:bg-red-600 transition duration-200"
+                    >
                       Delete
                     </Button>
                   </div>
