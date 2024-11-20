@@ -334,28 +334,29 @@ const AdminDashboard = () => {
     navigate("/adminSignin")
   }
   return (
-    <div className="flex flex-col md:flex-row h-screen bg-[#0a0b0f]">
-      {/* Sidebar - Updated for mobile responsiveness */}
-      <div className="w-full md:w-64 bg-[#13141a] p-4 border-b md:border-r border-[#1f2128] shadow-lg">
-        <div className="flex items-center justify-between md:justify-start space-x-2 mb-8">
-          <div className="flex items-center space-x-2">
-            <div className="w-10 h-10 bg-purple-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold">M</span>
+    <div className="flex flex-col md:flex-row h-screen bg-[#0a0a0c]">
+      {/* Sidebar - slightly lighter than main background */}
+      <div className="w-full md:w-72 bg-[#151518] p-6 border-b md:border-r border-gray-800/50 shadow-xl">
+        <div className="flex items-center justify-between md:justify-start space-x-3 mb-8">
+          <div className="flex items-center space-x-3">
+            <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
+              <span className="text-white text-xl font-bold">M</span>
             </div>
-            <span className="text-white text-xl font-semibold">MetaSpace</span>
+            <span className="text-white text-2xl font-bold tracking-tight">MetaSpace</span>
           </div>
-          {/* Mobile menu button could go here if needed */}
         </div>
 
-        <div className="relative mb-6 hidden md:block">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 w-4 h-4" />
+        {/* Search input - softer dark */}
+        <div className="relative mb-8 hidden md:block">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
           <Input 
-            className="w-full pl-10 bg-[#1f2128] border-none text-gray-300 placeholder-gray-500 focus:ring-2 focus:ring-purple-500" 
+            className="w-full pl-10 bg-[#2a2b32]/50 backdrop-blur-sm border-gray-700/50 text-gray-200 placeholder-gray-500 focus:ring-2 focus:ring-purple-500/50 transition-all" 
             placeholder="Search..."
           />
         </div>
 
-        <div className="flex md:block overflow-x-auto md:overflow-x-visible space-x-2 md:space-x-0 md:space-y-1">
+        {/* Enhanced sidebar buttons */}
+        <div className="flex md:block overflow-x-auto md:overflow-x-visible space-x-2 md:space-x-0 md:space-y-2">
           {[
             { icon: Map, label: 'Manage Spaces' },
             { icon: Star, label: 'Featured' },
@@ -367,52 +368,52 @@ const AdminDashboard = () => {
               key={item.label}
               onClick={item.onClick}
               variant="ghost"
-              className="min-w-[120px] md:w-full justify-start text-gray-400 hover:bg-[#1f2128] hover:text-white"
+              className="min-w-[120px] md:w-full justify-start text-gray-300 hover:bg-purple-500/20 hover:text-purple-300 transition-all duration-300 rounded-lg"
             >
-              <item.icon className="mr-2 h-4 w-4" />
-              <span className="hidden md:inline">{item.label}</span>
+              <item.icon className="mr-3 h-4 w-4" />
+              <span className="hidden md:inline font-medium">{item.label}</span>
             </Button>
           ))}
         </div>
       </div>
 
-      {/* Main Content - Updated for better spacing on mobile */}
-      <div className="flex-1 p-4 md:p-8 overflow-auto">
-        <h1 className="text-2xl md:text-3xl font-bold text-white mb-6">Admin Dashboard</h1>
+      {/* Main Content - Enhanced with better spacing and gradients */}
+      <div className="flex-1 p-6 md:p-8 overflow-auto bg-[#0a0a0c]">
+        <h1 className="text-3xl font-bold text-gray-100 mb-8 tracking-tight">Admin Dashboard</h1>
         
         <Tabs defaultValue="elements" className="w-full">
-          <TabsList className="bg-[#13141a] border-b border-[#1f2128] p-0 overflow-x-auto flex-nowrap">
+          <TabsList className="bg-[#151518] border border-gray-800/50 rounded-xl p-1 overflow-x-auto flex-nowrap mb-6">
             {['elements', 'avatars', 'maps'].map((tab) => (
               <TabsTrigger 
                 key={tab}
                 value={tab} 
-                className="px-3 md:px-6 py-2 md:py-3 text-sm md:text-base text-gray-400 data-[state=active]:text-white data-[state=active]:bg-[#1f2128] hover:bg-[#1f2128] transition duration-200 whitespace-nowrap"
+                className="px-6 py-3 text-base text-gray-400 data-[state=active]:text-gray-100 data-[state=active]:bg-gradient-to-br data-[state=active]:from-purple-600/80 data-[state=active]:to-indigo-600/80"
               >
                 {tab.charAt(0).toUpperCase() + tab.slice(1)}
               </TabsTrigger>
             ))}
           </TabsList>
 
-          {/* Update the grid layouts in TabsContent */}
-          <TabsContent value="elements" className="mt-4 md:mt-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+          {/* Update the cards with enhanced styling */}
+          <TabsContent value="elements" className="mt-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {/* Add New Element Card */}
-              <div className="group bg-[#13141a] rounded-xl p-4 md:p-6 border border-[#1f2128] hover:border-purple-500 transition-all duration-300 shadow-md">
-                <h3 className="text-xl font-semibold text-white mb-4">Add New Element</h3>
+              <div className="group bg-[#151518] hover:bg-[#1a1a1f] rounded-xl p-6 border border-gray-800 hover:border-purple-500/50 transition-all duration-500 shadow-lg hover:shadow-purple-500/10">
+                <h3 className="text-xl font-bold text-gray-100 mb-6 tracking-tight">Add New Element</h3>
                 <div className="space-y-4">
                 <div>
-                    <Label className="text-gray-400 mb-1.5">Element Name</Label>
+                    <Label className="text-gray-300 mb-1.5">Element Name</Label>
                     <Input
-                      className="bg-[#1f2128] border-none text-gray-300 focus:ring-2 focus:ring-purple-500"
+                      className="bg-[#0a0a0c] border-gray-800 text-gray-200 focus:ring-2 focus:ring-purple-500/50"
                       value={elementName}
                       onChange={(e) => setElementName(e.target.value)}
                       placeholder="Office Desk"
                     />
                   </div>
                   <div>
-                    <Label className="text-gray-400 mb-1.5">Image URL</Label>
+                    <Label className="text-gray-300 mb-1.5">Image URL</Label>
                     <Input
-                      className="bg-[#1f2128] border-none text-gray-300 focus:ring-2 focus:ring-purple-500"
+                      className="bg-[#0a0a0c] border-gray-800 text-gray-200 focus:ring-2 focus:ring-purple-500/50"
                       value={elementImageUrl}
                       onChange={(e) => setElementImageUrl(e.target.value)}
                       placeholder="https://example.com/image.png"
@@ -421,19 +422,19 @@ const AdminDashboard = () => {
                   <div className="grid grid-cols-2 gap-4">
                     
                       <div key="Width">
-                        <Label className="text-gray-400 mb-1.5">Width</Label>
+                        <Label className="text-gray-300 mb-1.5">Width</Label>
                         <Input
                           type="number"
-                          className="bg-[#1f2128] border-none text-gray-300 focus:ring-2 focus:ring-purple-500"
+                          className="bg-[#0a0a0c] border-gray-800 text-gray-200 focus:ring-2 focus:ring-purple-500/50"
                           value={elementWidth}
                           onChange={(e) => setElementWidth(parseInt(e.target.value))}
                         />
                       </div>
                       <div key="Height">
-                        <Label className="text-gray-400 mb-1.5">Height</Label>
+                        <Label className="text-gray-300 mb-1.5">Height</Label>
                         <Input
                           type="number"
-                          className="bg-[#1f2128] border-none text-gray-300 focus:ring-2 focus:ring-purple-500"
+                          className="bg-[#0a0a0c] border-gray-800 text-gray-200 focus:ring-2 focus:ring-purple-500/50"
                           value={elementHeight}
                           onChange={(e) => setElementHeight(parseInt(e.target.value))}
                         />
@@ -447,7 +448,7 @@ const AdminDashboard = () => {
                       onCheckedChange={(checked) => setElementStatic(checked)}
                       className="data-[state=checked]:bg-purple-500 bg-gray-400"
                     />
-                    <Label htmlFor="static" className="text-gray-400">Static Element</Label>
+                    <Label htmlFor="static" className="text-gray-300">Static Element</Label>
                   </div>
                   <div className="flex space-x-2 justify-end ">
                   <Button 
@@ -472,30 +473,34 @@ const AdminDashboard = () => {
 
               {/* Existing Elements */}
               {elements.map((element) => (
-                <div key={element.id} className="group bg-[#13141a] rounded-xl p-4 md:p-6 border border-[#1f2128] hover:border-purple-500 transition-all duration-300 shadow-md">
-                  <img 
-                    src={element.imageUrl} 
-                    alt={element.name}
-                    className="w-full h-40 object-cover rounded-lg mb-4 bg-[#1f2128]"
-                  />
-                  <h3 className="text-lg font-semibold text-white mb-2">{element.name}</h3>
-                  <div className="flex justify-between text-gray-400 text-sm mb-4">
-                    <span>{element.width}x{element.height}</span>
-                    <span>{element.static ? 'Static' : 'Dynamic'}</span>
+                <div key={element.id} className="group bg-[#151518] hover:bg-[#1a1a1f] rounded-xl p-6 border border-gray-800 hover:border-purple-500/50 transition-all duration-500 shadow-lg hover:shadow-purple-500/10">
+                  <div className="overflow-hidden rounded-lg mb-4 bg-[#0a0a0c] border border-gray-800">
+                    <img 
+                      src={element.imageUrl} 
+                      alt={element.name}
+                      className="w-full h-48 object-cover transform group-hover:scale-105 transition-transform duration-500"
+                    />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-100 mb-3">{element.name}</h3>
+                  <div className="flex justify-between text-sm mb-4">
+                    <span className="bg-[#0a0a0c] text-gray-300 px-3 py-1 rounded-full border border-gray-800">
+                      {element.width}x{element.height}
+                    </span>
+                    <span className={`px-3 py-1 rounded-full ${
+                      element.static 
+                        ? 'bg-purple-900/50 text-purple-200 border border-purple-700' 
+                        : 'bg-blue-900/50 text-blue-200 border border-blue-700'
+                    }`}>
+                      {element.static ? 'Static' : 'Dynamic'}
+                    </span>
                   </div>
                   <div className="flex space-x-2">
-                    <Button  onClick={()=>{
-                      setEditElement(element)
-                      setElementName(element.name)
-                      setElementImageUrl(element.imageUrl)
-                      setElementWidth(element.width)
-                      setElementHeight(element.height)
-                      setElementStatic(element.static)
-                      setEditElement(element)
-                    }} variant="outline" className="flex-1 border-[#1f2128] text-gray-400 hover:text-white hover:bg-[#1f2128] transition duration-200">
+                    <Button variant="outline" 
+                      className="flex-1 bg-[#0a0a0c] border-gray-800 text-gray-300 hover:text-purple-200 hover:bg-purple-900/50 hover:border-purple-700">
                       Edit
                     </Button>
-                    <Button onClick={()=>handleDeleteElement(element.id)} variant="outline"  className="flex-1 border-[#1f2128] text-red-400 hover:text-white hover:bg-red-600 transition duration-200">
+                    <Button variant="outline"  
+                      className="flex-1 bg-[#0a0a0c] border-gray-800 text-red-400 hover:text-red-200 hover:bg-red-900/50 hover:border-red-700">
                       Delete
                     </Button>
                   </div>
@@ -505,25 +510,25 @@ const AdminDashboard = () => {
           </TabsContent>
 
           {/* Avatars Tab */}
-          <TabsContent value="avatars" className="mt-4 md:mt-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+          <TabsContent value="avatars" className="mt-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {/* Add New Avatar Card */}
-              <div className="group bg-[#13141a] rounded-xl p-4 md:p-6 border border-[#1f2128] hover:border-purple-500 transition-all duration-300 shadow-md">
-                <h3 className="text-xl font-semibold text-white mb-4">Add New Avatar</h3>
+              <div className="group bg-[#151518] hover:bg-[#1a1a1f] rounded-xl p-6 border border-gray-800 hover:border-purple-500/50 transition-all duration-500 shadow-lg hover:shadow-purple-500/10">
+                <h3 className="text-xl font-semibold text-gray-200 mb-4">Add New Avatar</h3>
                 <div className="space-y-4">
                   <div>
-                    <Label className="text-gray-400 mb-1.5">Avatar Name</Label>
+                    <Label className="text-gray-300 mb-1.5">Avatar Name</Label>
                     <Input
-                      className="bg-[#1f2128] border-none text-gray-300 focus:ring-2 focus:ring-purple-500"
+                      className="bg-[#0a0a0c] border-gray-800 text-gray-200 focus:ring-2 focus:ring-purple-500/50"
                       value={avatarName}
                       onChange={(e) => setAvatarName(e.target.value)}
                       placeholder="Business Casual"
                     />
                   </div>
                   <div>
-                    <Label className="text-gray-400 mb-1.5">Image URL</Label>
+                    <Label className="text-gray-300 mb-1.5">Image URL</Label>
                     <Input
-                      className="bg-[#1f2128] border-none text-gray-300 focus:ring-2 focus:ring-purple-500"
+                      className="bg-[#0a0a0c] border-gray-800 text-gray-200 focus:ring-2 focus:ring-purple-500/50"
                       value={avatarImageUrl}
                       onChange={(e) =>(setAvatarImageUrl(e.target.value))}
                       placeholder="https://example.com/avatar.png"
@@ -549,26 +554,27 @@ const AdminDashboard = () => {
 
               {/* Existing Avatars */}
               {avatars.map((avatar) => (
-                <div key={avatar.id} className="group bg-[#13141a] rounded-xl p-4 md:p-6 border border-[#1f2128] hover:border-purple-500 transition-all duration-300 shadow-md">
+                <div key={avatar.id} className="group bg-[#151518] hover:bg-[#1a1a1f] rounded-xl p-6 border border-gray-800 hover:border-purple-500/50 transition-all duration-500 shadow-lg hover:shadow-purple-500/10">
                   <div className="relative w-32 h-32 mx-auto mb-4">
+                    <div className="absolute inset-0 bg-gradient-to-br from-purple-900/50 to-blue-900/50 rounded-full blur-xl group-hover:blur-2xl transition-all duration-500"></div>
                     <img 
                       src={avatar.imageUrl} 
                       alt={avatar.name}
-                      className="w-full h-full object-cover rounded-full bg-[#1f2128]"
+                      className="relative w-full h-full object-cover rounded-full bg-[#0a0a0c] border-2 border-gray-800 group-hover:border-purple-700 transition-all duration-500"
                     />
                   </div>
-                  <h3 className="text-lg font-semibold text-white text-center mb-4">{avatar.name}</h3>
+                  <h3 className="text-lg font-semibold text-gray-100 text-center mb-4">{avatar.name}</h3>
                   <div className="flex space-x-2">
                     <Button onClick={() => {
                       setEditAvatar(avatar);
                       setAvatarName(avatar.name)
                       setAvatarImageUrl(avatar.imageUrl)
-                    }} variant="outline" className="flex-1 border-[#1f2128] text-gray-400 hover:text-white hover:bg-[#1f2128] transition duration-200">
+                    }} variant="outline" className="flex-1 border-gray-700/50 text-gray-300 hover:text-gray-100 hover:bg-gray-700/50 transition duration-200">
                       Edit
                     </Button>
                     <Button variant="outline" onClick={()=>{
                       handleDeleteAvatar(avatar.id)
-                    }} className="flex-1 border-[#1f2128] text-red-400 hover:text-white hover:bg-red-600 transition duration-200">
+                    }} className="flex-1 border-gray-700/50 text-red-600 hover:text-red-800 hover:bg-red-700/50 transition duration-200">
                       Delete
                     </Button>
                   </div>
@@ -578,34 +584,34 @@ const AdminDashboard = () => {
           </TabsContent>
 
           {/* Maps Tab */}
-          <TabsContent value="maps" className="mt-4 md:mt-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+          <TabsContent value="maps" className="mt-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {/* Add New Map Card */}
-              <div className="group bg-[#13141a] rounded-xl p-4 md:p-6 border border-[#1f2128] hover:border-purple-500 transition-all duration-300 shadow-md">
-                <h3 className="text-xl font-semibold text-white mb-4">Add New Map</h3>
+              <div className="group bg-[#151518] hover:bg-[#1a1a1f] rounded-xl p-6 border border-gray-800 hover:border-purple-500/50 transition-all duration-500 shadow-lg hover:shadow-purple-500/10">
+                <h3 className="text-xl font-semibold text-gray-200 mb-4">Add New Map</h3>
                 <div className="space-y-4">
                   <div>
-                    <Label className="text-gray-400 mb-1.5">Map Name</Label>
+                    <Label className="text-gray-300 mb-1.5">Map Name</Label>
                     <Input
-                      className="bg-[#1f2128] border-none text-gray-300 focus:ring-2 focus:ring-purple-500"
+                      className="bg-[#0a0a0c] border-gray-800 text-gray-200 focus:ring-2 focus:ring-purple-500/50"
                       value={mapName}
                       onChange={(e) => setMapName(e.target.value)}
                       placeholder="Tech Hub Campus"
                     />
                   </div>
                   <div>
-                    <Label className="text-gray-400 mb-1.5">Thumbnail URL</Label>
+                    <Label className="text-gray-300 mb-1.5">Thumbnail URL</Label>
                     <Input
-                      className="bg-[#1f2128] border-none text-gray-300 focus:ring-2 focus:ring-purple-500"
+                      className="bg-[#0a0a0c] border-gray-800 text-gray-200 focus:ring-2 focus:ring-purple-500/50"
                       value={mapThumbnail}
                       onChange={(e) => setMapThumbnail(e.target.value)}
                       placeholder="https://example.com/thumbnail.png"
                     />
                   </div>
                   <div>
-                    <Label className="text-gray-400 mb-1.5">Dimensions</Label>
+                    <Label className="text-gray-300 mb-1.5">Dimensions</Label>
                     <Input
-                      className="bg-[#1f2128] border-none text-gray-300 focus:ring-2 focus:ring-purple-500"
+                      className="bg-[#0a0a0c] border-gray-800 text-gray-200 focus:ring-2 focus:ring-purple-500/50"
                       value={mapDimensions}
                       onChange={(e) => setMapDimensions(e.target.value)}
                       placeholder="1920x1080"
@@ -635,16 +641,24 @@ const AdminDashboard = () => {
 
               {/* Existing Maps */}
               {maps.map((map) => (
-                <div key={map.id} className="group bg-[#13141a] rounded-xl p-4 md:p-6 border border-[#1f2128] hover:border-purple-500 transition-all duration-300 shadow-md">
-                  <img 
-                    src={map.thumbnail} 
-                    alt={map.name}
-                    className="w-full h-40 object-cover rounded-lg mb-4 bg-[#1f2128]"
-                  />
-                  <h3 className="text-lg font-semibold text-white mb-2">{map.name}</h3>
-                  <div className="flex justify-between text-gray-400 text-sm mb-4">
-                    <span>{map.width}x{map.height}</span>
-                    
+                <div onClick={()=>{
+                  navigate(`/map/${map.id}`)
+                }} key={map.id} className="group bg-[#151518] hover:bg-[#1a1a1f] rounded-xl p-6 border border-gray-800 hover:border-purple-500/50 transition-all duration-500 shadow-lg hover:shadow-purple-500/10">
+                  <div className="overflow-hidden rounded-lg mb-4 bg-[#0a0a0c] border border-gray-800">
+                    <img 
+                      src={map.thumbnail} 
+                      alt={map.name}
+                      className="w-full h-40 object-cover transform group-hover:scale-105 transition-transform duration-500"
+                    />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-100 mb-2">{map.name}</h3>
+                  <div className="flex justify-between text-sm mb-4">
+                    <span className="bg-[#0a0a0c] text-gray-300 px-3 py-1 rounded-full border border-gray-800">
+                      {map.width}x{map.height}
+                    </span>
+                    <span className="bg-purple-900/50 text-purple-200 px-3 py-1 rounded-full border border-purple-700">
+                      {map.users} users
+                    </span>
                   </div>
                   <div className="flex space-x-2">
                     <Button 
@@ -656,14 +670,14 @@ const AdminDashboard = () => {
                         
                       }} 
                       variant="outline" 
-                      className="flex-1 border-[#1f2128] text-gray-400 hover:text-white hover:bg-[#1f2128] transition duration-200"
+                      className="flex-1 border-gray-700/50 text-gray-300 hover:text-gray-100 hover:bg-gray-700/50 transition duration-200"
                     >
                       Edit
                     </Button>
                     <Button 
                       onClick={() => handleDeleteMap(map.id)} 
                       variant="outline" 
-                      className="flex-1 border-[#1f2128] text-red-400 hover:text-white hover:bg-red-600 transition duration-200"
+                      className="flex-1 border-gray-700/50 text-red-600 hover:text-red-800 hover:bg-red-700/50 transition duration-200"
                     >
                       Delete
                     </Button>
@@ -675,7 +689,11 @@ const AdminDashboard = () => {
         </Tabs>
       </div>
 
-      <ToastContainer />
+      <ToastContainer 
+        position="bottom-right"
+        theme="dark"
+        toastClassName="bg-[#2a2b32] text-gray-200"
+      />
     </div>
   );
 };

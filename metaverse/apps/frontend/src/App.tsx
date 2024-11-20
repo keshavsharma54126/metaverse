@@ -21,6 +21,7 @@ function App() {
           <Route path="/adminDashboard" element={<AdminDashboard/>}/>
           <Route path="/world" element={<Space/>}/>
           <Route path="/mapMaker" element={<MapMaker/>} />
+          <Route path="/map/:id" element={<MapMaker/>} />
         </Routes>
       </BrowserRouter>
     </>
