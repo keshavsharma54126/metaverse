@@ -8,7 +8,7 @@ export const userMiddleware = (req: any, res: any, next: any) => {
       message:"unauthorized"
     })
   }
-  const token = header.split(" ")[2];
+  const token = header.split(" ")[1];
   if (!token) {
     return res.status(400).json({
       message: "unauthorized",

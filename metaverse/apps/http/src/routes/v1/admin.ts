@@ -71,25 +71,30 @@ adminRouter.put("/element/:elementId",adminMiddleware,async(req:any,res:any)=>{
 
 adminRouter.put("/avatar/:avatarId",adminMiddleware,async(req:any,res:any)=>{
     try{
-        const {avatarImageUrl}=req.body;
+        const {avatarName,avatarImageUrl}=req.body;
+        
         const existingAvatar = await client.avatar.findUnique({
             where:{
                 id:req.params.avatarId
             }
         })
+        
         if(!existingAvatar){
             return res.status(400).json({
                 message:"element not found"
             })
         }
-        const updatedAvatar = await client.element.update({
+
+        const updatedAvatar = await client.avatar.update({
             where:{
                 id:req.params.avatarId,
             },
             data:{
+                name:avatarName,
                 imageUrl:avatarImageUrl
             }
         })
+       
         return res.json({
             id:updatedAvatar.id
         })

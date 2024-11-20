@@ -9,9 +9,17 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
 type Avatar={
-  id:string,
+  id:number,
   imageUrl:string,
   name:string,
+}
+type Element={
+  id:number,
+  imageUrl:string,
+  name:string,
+  width:number,
+  height:number,
+  static:boolean
 }
 
 
@@ -21,6 +29,13 @@ const AdminDashboard = () => {
   const BACKEND_URL=import.meta.env.VITE_BACKEND_URL;
   const [avatarName,setAvatarName]=useState("");
   const [avatarImageUrl,setAvatarImageUrl]=useState("")
+  const [editAvatar,setEditAvatar] = useState<Avatar| null>()
+  const[elementName,setElementName]=useState("")
+  const [elementImageUrl,setElementImageUrl]=useState("")
+  const [elementWidth,setElementWidth]=useState(0)
+  const [elementHeight,setElementHeight]=useState(0)
+  const [elementStatic,setElementStatic]=useState(true)
+  const [editElement,setEditElement]=useState<Element|null>()
   const [elements, setElements] = useState([
     { id: 1, name: 'Office Desk', imageUrl: '', width: 100, height: 100, static: true },
     { id: 2, name: 'Meeting Table', imageUrl: '/api/placeholder/400/300', width: 200, height: 150, static: true }
@@ -116,8 +131,9 @@ const AdminDashboard = () => {
     try{
       setAvatarName(avatar.name)
       const token = localStorage.getItem("authToken")
-      const res= await axios.put(`${BACKEND_URL}/admin/${avatar.id}`,{
-        avatarImageUrl
+      const res= await axios.put(`${BACKEND_URL}/admin/avatar/${avatar.id}`,{
+        avatarImageUrl,
+        avatarName
       },{
         headers:{
           Authorization:`Bearer ${token}`,
@@ -125,6 +141,9 @@ const AdminDashboard = () => {
         }
       })
       console.log(res.data)
+      setEditAvatar(null)
+      setAvatarName("")
+      setAvatarImageUrl("")
       updateAvatars()
     }catch(e){
       console.error(e,"error while deleting avatar")
@@ -326,6 +345,13 @@ const AdminDashboard = () => {
                     <Plus className="w-4 h-4 mr-2" />
                     Create Avatar
                   </Button>
+                  <Button 
+                    className="w-full bg-purple-600 hover:bg-purple-700 text-white"
+                    onClick={() => { if (editAvatar) handleUpdateAvatar(editAvatar); }}
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Edit Avatar
+                  </Button>
                   
                 </div>
               </div>
@@ -342,7 +368,11 @@ const AdminDashboard = () => {
                   </div>
                   <h3 className="text-lg font-semibold text-white text-center mb-4">{avatar.name}</h3>
                   <div className="flex space-x-2">
-                    <Button onClick={()=>{setAvatarName(avatar.name)}}variant="outline" className="flex-1 border-[#1f2128] text-gray-400 hover:text-white hover:bg-[#1f2128]">
+                    <Button onClick={() => {
+                      setEditAvatar(avatar);
+                      setAvatarName(avatar.name)
+                      setAvatarImageUrl(avatar.imageUrl)
+                    }} variant="outline" className="flex-1 border-[#1f2128] text-gray-400 hover:text-white hover:bg-[#1f2128]">
                       Edit
                     </Button>
                     <Button variant="outline" onClick={()=>{
