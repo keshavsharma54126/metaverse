@@ -10,10 +10,23 @@ interface Element {
   width: number;
   height: number;
   static: boolean;
+  x:number,
+  y:number
 }
 
-const MapEditor = () => {
+interface Map{
+  id:string;
+  thumbnail:string;
+  name:string;
+  width:number;
+  height:number;
+  elements:Element[];
+}
+
+const MapEditor = ({mapId}:{mapId:string}) => {
+
   const phaserRef = useRef<HTMLDivElement>(null);
+  const [map,setMap] = useState<Map|null>(null);
   const gameRef = useRef<Phaser.Game | null>(null);
   const [elements, setElements] = useState<Element[]>([]);
   const [selectedElement, setSelectedElement] = useState<Element | null>(null);
@@ -23,6 +36,21 @@ const MapEditor = () => {
 
   // Fetch elements from backend
   useEffect(() => {
+    const fetchMap = async()=>{
+      try {
+        const token = localStorage.getItem("authToken");
+        const res = await axios.get(`${BACKEND_URL}/admin/maps/${mapId}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json"
+          }
+        })
+        console.log(res.data.map);
+        setMap(res.data.map);
+      }catch(e){
+        console.error("Failed to fetch map:", e);
+      }
+    }
     const fetchElements = async () => {
       try {
         const token = localStorage.getItem("authToken");
@@ -38,6 +66,7 @@ const MapEditor = () => {
       }
     };
     fetchElements();
+    fetchMap();
   }, []);
 
   useEffect(() => {
@@ -67,18 +96,26 @@ const MapEditor = () => {
 
       create() {
         // Create grid
-        const gridSize = 32;
-        const width = 1600;
-        const height = 1200;
-
+        const gridSize = 16;
+        const width = map?.width;
+        const height = map?.height;
         // Add background grid
-        for (let x = 0; x < width; x += gridSize) {
-          for (let y = 0; y < height; y += gridSize) {
+        for (let x = 0; x < (width ?? 0); x += gridSize) {
+          for (let y = 0; y < (height ?? 0); y += gridSize) {
             this.add.rectangle(x, y, gridSize, gridSize)
               .setStrokeStyle(1, 0xcccccc)
-              .setOrigin(0);
+              .setOrigin(0)
+              .setDepth(0);
           }
         }
+
+        //first we need to fetch and place all the saved elements from the map that were saved in the backend
+        map?.elements.forEach((element)=>{
+          this.add.image(element.x,element.y,`element_${element.id}`)
+          .setOrigin(0)
+          .setDepth(1)
+        })
+
 
         // Create preview image that follows mouse
         this.input.on('pointermove', (pointer: Phaser.Input.Pointer) => {
@@ -164,7 +201,7 @@ const MapEditor = () => {
     return () => {
       gameRef.current?.destroy(true);
     };
-  }, [elements, selectedElement, zoom]);
+  }, [elements, selectedElement]);
 
   return (
     <div className="flex flex-col md:flex-row h-screen bg-gradient-to-br from-gray-900 to-gray-800">

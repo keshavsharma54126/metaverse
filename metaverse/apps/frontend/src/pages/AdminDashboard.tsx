@@ -333,6 +333,9 @@ const AdminDashboard = () => {
   if(!localStorage.getItem("authToken")){
     navigate("/adminSignin")
   }
+  if(!localStorage.getItem("authToken")){
+    navigate("/adminSignin")
+  }
   return (
     <div className="flex flex-col md:flex-row h-screen bg-[#0a0a0c]">
       {/* Sidebar - slightly lighter than main background */}
@@ -496,10 +499,21 @@ const AdminDashboard = () => {
                   </div>
                   <div className="flex space-x-2">
                     <Button variant="outline" 
+                      onClick={()=>{
+                        setEditElement(element)
+                        setElementName(element.name)
+                        setElementImageUrl(element.imageUrl)
+                        setElementWidth(element.width)
+                        setElementHeight(element.height)
+                        setElementStatic(element.static)
+                      }}
                       className="flex-1 bg-[#0a0a0c] border-gray-800 text-gray-300 hover:text-purple-200 hover:bg-purple-900/50 hover:border-purple-700">
                       Edit
                     </Button>
                     <Button variant="outline"  
+                      onClick={()=>{
+                        handleDeleteElement(element.id)
+                      }}
                       className="flex-1 bg-[#0a0a0c] border-gray-800 text-red-400 hover:text-red-200 hover:bg-red-900/50 hover:border-red-700">
                       Delete
                     </Button>

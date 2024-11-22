@@ -229,6 +229,17 @@ adminRouter.get("/maps", adminMiddleware, async (req: any, res: any) => {
     })),
   });
 });
+adminRouter.get("/maps/:mapId",adminMiddleware,async(req:any,res:any)=>{
+  const map = await client.map.findUnique({
+    where:{
+      id:req.params.mapId
+    }
+  })
+
+  return res.json({
+    map:map
+  })
+})
 
 adminRouter.post("/map", adminMiddleware, async (req: any, res: any) => {
   const parsedData = CreateMapSchema.safeParse(req.body);

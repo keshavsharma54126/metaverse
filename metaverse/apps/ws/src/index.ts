@@ -2,7 +2,7 @@ import WebSocket, { WebSocketServer } from "ws";
 import { User } from "./user";
 
 const ws = new WebSocketServer({
-  port: 8080,
+  port: 8081,
 });
 
 console.log("web socket server started");
