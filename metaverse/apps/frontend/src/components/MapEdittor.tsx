@@ -224,6 +224,14 @@ const MapEditor = ({mapId}:{mapId:string}) => {
               .setDepth(1)
               .setDisplaySize(selectedElement.width*gridSize, selectedElement.height*gridSize);
 
+              if(selectedElement.static){
+                element.setData("isStatic",true);
+                this.physics.add.existing(element,true)
+                if(this.player){
+                  this.physics.add.collider(this.player,element)
+                }
+              }
+
               element.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
                 if (pointer.rightButtonDown()) {
                   element.destroy();
@@ -270,7 +278,7 @@ const MapEditor = ({mapId}:{mapId:string}) => {
           setZoom(this.cameras.zoom);
         });
 
-        this.player = this.physics.add.sprite(100,100,`avatar_${avatars[1].id}`)
+        this.player = this.physics.add.sprite(map.width/2,map.height/2,`avatar_${avatars[1].id}`)
         .setOrigin(0)
         .setDepth(2)
         .setDisplaySize(1*gridSize,1*gridSize);
