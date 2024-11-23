@@ -4,7 +4,7 @@ import axios from 'axios';
 import { FiZoomIn, FiZoomOut, FiSave, FiMove, FiArrowLeft } from 'react-icons/fi';
 import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import React from 'react';
+
 
 interface Element {
   id: number;
@@ -17,6 +17,7 @@ interface Element {
   y:number
   elementId:number
   element:Element
+  
 }
 
 interface Map{
@@ -38,16 +39,9 @@ const MapEditor = ({mapId}:{mapId:string}) => {
   const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
   const [zoom, setZoom] = useState(1);
   const [isDragging, setIsDragging] = useState(false);
-  const [gridSize,setGridSize] = useState(32);
-  const [players, setPlayers] = React.useState({
-    self: { id: 'self', name: 'You' },
-    user1: { id: 'user1', name: 'Alice' },
-    user2: { id: 'user2', name: 'Bob' },
-    user3: { id: 'user3', name: 'Saksham' }
-  });
+  const [gridSize, setGridSize] = useState(32);
+  const [avatars, setAvatars] = useState<Element[]>([]);
   // Fetch elements from backend
-
-
 
   useEffect(() => {
     const fetchMap = async()=>{
@@ -79,8 +73,23 @@ const MapEditor = ({mapId}:{mapId:string}) => {
         console.error("Failed to fetch elements:", e);
       }
     };
+    const fetchAvatars = async()=>{
+      try{
+        const token = localStorage.getItem("authToken");
+        const res = await axios.get(`${BACKEND_URL}/admin/avatars`,{
+          headers:{
+            Authorization:`Bearer ${token}`,
+            "Content-Type":"application/json"
+          }
+        })  
+        setAvatars(res.data.avatars);
+      }catch(e){
+        console.error("Failed to fetch avatars:",e);
+      }
+    } 
     fetchElements();
     fetchMap();
+    fetchAvatars();
   }, []);
 
   useEffect(() => {
@@ -91,7 +100,9 @@ const MapEditor = ({mapId}:{mapId:string}) => {
       private dragPreview: Phaser.GameObjects.Image | null = null;
       private collisionLayer: Phaser.GameObjects.Graphics | null = null;
       private grid: Phaser.GameObjects.Grid | null = null;
-      private cameras: Phaser.Cameras.Scene2D.Camera | null = null;
+      private cameras: Phaser.Cameras.Scene2D.CameraManager | null = null;
+      private player: Phaser.Physics.Arcade.Sprite | null = null;
+      private cursors: Phaser.Types.Input.Keyboard.CursorKeys | null = null;
 
       constructor() {
         super({ key: 'MapScene' });
@@ -135,6 +146,7 @@ const MapEditor = ({mapId}:{mapId:string}) => {
               .setDepth(0);
           }
         }
+
         //laod saved elemetns first
         if(map?.elements){
           console.log("elements",map.elements)
@@ -146,6 +158,9 @@ const MapEditor = ({mapId}:{mapId:string}) => {
             
             // Add interaction handlers
             placedElement.setInteractive({ draggable: true });
+
+            // Store the static property on the game object for collision checking
+            placedElement.setData('isStatic', ele.element.static);
 
             placedElement.on('pointerdown',(pointer:Phaser.Input.Pointer)=>{
               if(pointer.rightButtonDown()){
@@ -173,8 +188,7 @@ const MapEditor = ({mapId}:{mapId:string}) => {
 
             this.placedElements.push(placedElement);
           })
-        }
-        
+
 
 
         // Create preview image that follows mouse
@@ -228,6 +242,8 @@ const MapEditor = ({mapId}:{mapId:string}) => {
             this.placedElements.push(element);
           }
         });
+        
+        
 
         // Update preview when selected element changes
         this.updateDragPreview();
@@ -242,6 +258,52 @@ const MapEditor = ({mapId}:{mapId:string}) => {
           this.cameras.setZoom(Math.min(Math.max(newZoom, 0.5), 2));
           setZoom(this.cameras.zoom);
         });
+
+        this.player = this.physics.add.sprite(100,100,avatars[0].imageUrl)
+        .setOrigin(0)
+        .setDepth(2)
+        .setDisplaySize(1*gridSize,1*gridSize);
+
+      if (this.player) {
+        this.physics.add.existing(this.player,false);
+        this.placedElements.forEach((el)=>{
+          // Only add physics and collider for static elements
+          if (el.getData('isStatic')) {
+            this.physics.add.existing(el,true);
+            this.physics.add.collider(this.player,el);
+          }
+        })
+      }
+      if(this.player && this.cameras ){
+        this.cameras.startFollow(this.player); 
+      }
+      
+      if (this.input?.keyboard) {
+        this.cursors = this.input.keyboard.createCursorKeys();
+      }
+    }
+      }
+      update(){
+        if(!this.player || !this.cursors){
+          return
+        }
+        const speed =100
+        const playerBody = this.player.body as Phaser.Physics.Arcade.Body;
+        // Reset velocity
+        playerBody.setVelocity(0);
+
+        // Handle movement
+        if (this.cursors?.left.isDown) {
+          playerBody.setVelocityX(-speed);
+        } else if (this.cursors?.right.isDown) {
+          playerBody.setVelocityX(speed);
+        }
+
+        if (this.cursors?.up.isDown) {
+              playerBody.setVelocityY(-speed);
+            } else if (this.cursors?.down.isDown) {
+              playerBody.setVelocityY(speed);
+            }
       }
 
       updateDragPreview() {
@@ -257,6 +319,7 @@ const MapEditor = ({mapId}:{mapId:string}) => {
             .setDisplaySize(selectedElement.width*gridSize, selectedElement.height*gridSize);
         }
       }
+     
       
     }
 
@@ -267,6 +330,12 @@ const MapEditor = ({mapId}:{mapId:string}) => {
       height: 1200,
       backgroundColor: '#FFFFFF',
       scene: MapScene,
+      physics:{
+        default:'arcade',
+        arcade:{
+          debug:true
+        }
+      }
     };
 
     gameRef.current = new Phaser.Game(config);
