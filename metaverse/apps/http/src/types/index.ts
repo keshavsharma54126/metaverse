@@ -48,6 +48,16 @@ export const UpdateElementSchema = z.object({
   static: z.boolean(),
 });
 
+export const UpdateMapElemmentsSchema = z.object({
+  elements: z.array(z.object({
+    x: z.number(),
+    y: z.number(),
+    elementId:z.string(),
+    mapId:z.string(),
+
+  })),
+});
+
 export const CreateAvatarSchema = z.object({
   imageUrl: z.string(),
   name: z.string(),

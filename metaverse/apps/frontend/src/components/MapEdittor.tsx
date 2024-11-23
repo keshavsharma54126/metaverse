@@ -1,7 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import Phaser from 'phaser';
 import axios from 'axios';
-import { FiZoomIn, FiZoomOut, FiSave, FiTrash2, FiMove } from 'react-icons/fi';
+import { FiZoomIn, FiZoomOut, FiSave, FiMove, FiArrowLeft } from 'react-icons/fi';
+import { Link } from 'react-router-dom';
+import { toast } from 'react-toastify';
+import React from 'react';
 
 interface Element {
   id: number;
@@ -12,6 +15,8 @@ interface Element {
   static: boolean;
   x:number,
   y:number
+  elementId:number
+  element:Element
 }
 
 interface Map{
@@ -33,8 +38,17 @@ const MapEditor = ({mapId}:{mapId:string}) => {
   const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
   const [zoom, setZoom] = useState(1);
   const [isDragging, setIsDragging] = useState(false);
-
+  const [gridSize,setGridSize] = useState(32);
+  const [players, setPlayers] = React.useState({
+    self: { id: 'self', name: 'You' },
+    user1: { id: 'user1', name: 'Alice' },
+    user2: { id: 'user2', name: 'Bob' },
+    user3: { id: 'user3', name: 'Saksham' }
+  });
   // Fetch elements from backend
+
+
+
   useEffect(() => {
     const fetchMap = async()=>{
       try {
@@ -75,6 +89,7 @@ const MapEditor = ({mapId}:{mapId:string}) => {
     class MapScene extends Phaser.Scene {
       private placedElements: Phaser.GameObjects.Image[] = [];
       private dragPreview: Phaser.GameObjects.Image | null = null;
+      private collisionLayer: Phaser.GameObjects.Graphics | null = null;
       private grid: Phaser.GameObjects.Grid | null = null;
       private cameras: Phaser.Cameras.Scene2D.Camera | null = null;
 
@@ -83,38 +98,83 @@ const MapEditor = ({mapId}:{mapId:string}) => {
       }
 
       preload() {
-        // Load all element images with error handling
         elements.forEach(element => {
-          this.load.image(`element_${element.id}`, element.imageUrl);
-        });
+          const imageKey = `element_${element.id}`;
         
-        // Add loading error handler
+          const url = new URL(element.imageUrl);
+          url.searchParams.append('t', Date.now().toString());
+
+          this.load.image({
+            key: imageKey,
+            url: url.toString(),
+          });
+        });
+
+        // Add better error logging
         this.load.on('loaderror', (fileObj: any) => {
-          console.error('Error loading asset:', fileObj.src);
+          console.error('Load Error:', {
+            key: fileObj.key,
+            url: fileObj.url,
+            type: fileObj.type,
+            error: fileObj.error
+          });
         });
       }
 
       create() {
         // Create grid
-        const gridSize = 16;
+        
         const width = map?.width;
         const height = map?.height;
         // Add background grid
         for (let x = 0; x < (width ?? 0); x += gridSize) {
           for (let y = 0; y < (height ?? 0); y += gridSize) {
             this.add.rectangle(x, y, gridSize, gridSize)
-              .setStrokeStyle(1, 0xcccccc)
+              .setStrokeStyle(1, 0x777777)
               .setOrigin(0)
               .setDepth(0);
           }
         }
+        //laod saved elemetns first
+        if(map?.elements){
+          console.log("elements",map.elements)
+          map.elements.forEach((ele)=>{
+            const placedElement = this.add.image(ele.x,ele.y,`element_${ele.elementId}`)
+            .setOrigin(0)
+            .setDepth(1)
+            .setDisplaySize(ele.element.width*gridSize,ele.element.height*gridSize);
+            
+            // Add interaction handlers
+            placedElement.setInteractive({ draggable: true });
 
-        //first we need to fetch and place all the saved elements from the map that were saved in the backend
-        map?.elements.forEach((element)=>{
-          this.add.image(element.x,element.y,`element_${element.id}`)
-          .setOrigin(0)
-          .setDepth(1)
-        })
+            placedElement.on('pointerdown',(pointer:Phaser.Input.Pointer)=>{
+              if(pointer.rightButtonDown()){
+                placedElement.destroy();
+                const index  = this.placedElements.indexOf(placedElement);
+                if(index>-1){
+                  this.placedElements.splice(index,1);
+                }
+              }
+            })
+            
+            placedElement.on('pointerover', () => {
+              placedElement.setTint(0x999999);
+            });
+
+            placedElement.on('pointerout', () => {
+              placedElement.clearTint();
+            });
+
+            placedElement.on('drag', (pointer: Phaser.Input.Pointer, dragX: number, dragY: number) => {
+              const x = Math.floor(dragX / gridSize) * gridSize;
+              const y = Math.floor(dragY / gridSize) * gridSize;
+              placedElement.setPosition(x, y);
+            });
+
+            this.placedElements.push(placedElement);
+          })
+        }
+        
 
 
         // Create preview image that follows mouse
@@ -135,8 +195,19 @@ const MapEditor = ({mapId}:{mapId:string}) => {
             
             const element = this.add.image(x, y, `element_${selectedElement.id}`)
               .setOrigin(0)
-              .setInteractive({ draggable: true }) // Enable dragging directly
-              .setDepth(1); // Ensure elements appear above grid
+              .setInteractive({ draggable: true })
+              .setDepth(1)
+              .setDisplaySize(selectedElement.width*gridSize, selectedElement.height*gridSize);
+
+              element.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
+                if (pointer.rightButtonDown()) {
+                  element.destroy();
+                  const index = this.placedElements.indexOf(element);
+                  if (index > -1) {
+                    this.placedElements.splice(index, 1);
+                  }
+                }
+              });
 
             // Add hover effect
             element.on('pointerover', () => {
@@ -181,10 +252,12 @@ const MapEditor = ({mapId}:{mapId:string}) => {
           this.dragPreview = this.add.image(0, 0, `element_${selectedElement.id}`)
             .setOrigin(0)
             .setAlpha(0.5)
-            .setDepth(2) // Keep preview above other elements
-            .setVisible(false);
+            .setDepth(2)
+            .setVisible(false)
+            .setDisplaySize(selectedElement.width*gridSize, selectedElement.height*gridSize);
         }
       }
+      
     }
 
     const config: Phaser.Types.Core.GameConfig = {
@@ -201,7 +274,30 @@ const MapEditor = ({mapId}:{mapId:string}) => {
     return () => {
       gameRef.current?.destroy(true);
     };
-  }, [elements, selectedElement]);
+  }, [elements,selectedElement,map]);
+  const saveMap = async()=>{
+    const scene = gameRef.current?.scene.getScene("MapScene") as any;
+    const mapData = {
+      elements:scene.placedElements.map((el:any)=>({
+        elementId:el.texture.key.split('_')[1],
+        x:el.x,
+        y:el.y,
+        mapId:mapId,
+      }))
+    }
+    try{
+      const token = localStorage.getItem("authToken");
+      await axios.put(`${BACKEND_URL}/admin/mapElements/${mapId}`,mapData,{
+        headers:{
+          Authorization:`Bearer ${token}`,
+          "Content-Type":"application/json"
+        }
+      })
+      toast.success("Map saved successfully")
+    }catch(e){
+      toast.error("Failed to save map")
+    }
+  }
 
   return (
     <div className="flex flex-col md:flex-row h-screen bg-gradient-to-br from-gray-900 to-gray-800">
@@ -220,7 +316,14 @@ const MapEditor = ({mapId}:{mapId:string}) => {
                   ? 'bg-gradient-to-r from-blue-600 to-blue-500 shadow-xl shadow-blue-500/20'
                   : 'bg-gray-700/50 hover:bg-gray-600/50 backdrop-blur-sm'
               }`}
-              onClick={() => setSelectedElement(element)}
+              onClick={() => {
+                if(selectedElement?.id===element.id){
+                  setSelectedElement(null)
+                }
+                else{
+                  setSelectedElement(element)
+                }
+              }}
             >
               <div className="relative group">
                 <img
@@ -250,6 +353,15 @@ const MapEditor = ({mapId}:{mapId:string}) => {
         
         {/* Enhanced Floating Toolbar */}
         <div className="absolute top-4 right-4 flex flex-col gap-3">
+          {/* Back to Dashboard Button - NEW */}
+          <Link
+            to="/adminDashboard"
+            className="px-6 py-3 bg-gray-800/90 backdrop-blur-md text-white rounded-xl hover:bg-gray-700/90 transition-all duration-300 flex items-center gap-2 shadow-xl group border border-gray-700/50"
+          >
+            <FiArrowLeft size={20} className="group-hover:scale-110 transition-transform" />
+            <span className="hidden md:inline">Back to Dashboard</span>
+          </Link>
+
           {/* Tools Group */}
           <div className="bg-gray-800/90 backdrop-blur-md p-2 rounded-2xl shadow-xl border border-gray-700/50">
             <div className="flex flex-col gap-2">
@@ -289,21 +401,11 @@ const MapEditor = ({mapId}:{mapId:string}) => {
           <button
             className="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-xl hover:from-blue-700 hover:to-blue-600 transition-all duration-300 flex items-center gap-2 shadow-xl group"
             onClick={() => {
-              const scene = gameRef.current?.scene.getScene('MapScene') as any;
-              const mapData = {
-                width: 1600,
-                height: 1200,
-                elements: scene.placedElements.map((el: any) => ({
-                  elementId: parseInt(el.texture.key.split('_')[1]),
-                  x: el.x,
-                  y: el.y,
-                })),
-              };
-              console.log('Map Data:', mapData);
+              saveMap();
             }}
           >
             <FiSave size={20} className="group-hover:scale-110 transition-transform" />
-            <span className="hidden md:inline">Save Map</span>
+            <span  className="hidden md:inline">Save Map</span>
           </button>
         </div>
       </div>

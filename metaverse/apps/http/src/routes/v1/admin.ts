@@ -1,6 +1,6 @@
 import {Router} from "express"
 import { adminMiddleware } from "../../middleware/admin"
-import { CreateAvatarSchema, CreateElementSchema, CreateMapSchema, UpdateElementSchema, UpdateMapSchema } from "../../types";
+import { CreateAvatarSchema, CreateElementSchema, CreateMapSchema, UpdateElementSchema, UpdateMapElemmentsSchema, UpdateMapSchema } from "../../types";
 import client from "@repo/db/client"
  
 export const adminRouter = Router()
@@ -233,7 +233,14 @@ adminRouter.get("/maps/:mapId",adminMiddleware,async(req:any,res:any)=>{
   const map = await client.map.findUnique({
     where:{
       id:req.params.mapId
-    }
+    },
+    include:{
+      elements:{
+        include:{
+          element:true
+        }
+      }
+    } 
   })
 
   return res.json({
@@ -353,4 +360,51 @@ adminRouter.delete("/map/:mapId", adminMiddleware, async (req: any, res: any) =>
     });
   }
 });
+
+adminRouter.put("/mapElements/:mapId", adminMiddleware, async (req: any, res: any) => {
+  const parsedData = UpdateMapElemmentsSchema.safeParse(req.body)
+  if (!parsedData.success) {
+    return res.status(400).json({
+      message: "invalid data"
+    })
+  }
+
+  try {
+    const map = await client.map.findUnique({
+      where: {
+        id: req.params.mapId
+      }
+    })
+
+    if (!map) {
+      return res.status(404).json({
+        message: "map not found"
+      })
+    }
+
+    // First delete existing elements
+    const deletedElements = await client.mapElements.deleteMany({
+      where: {
+        mapId: req.params.mapId
+      }
+    });
+      await client.mapElements.createMany({
+        data: parsedData.data.elements.map(element => ({
+          ...element,
+        }))
+      });
+    
+
+
+    return res.json({
+      id: map.id,
+      message: "map elements updated successfully"
+    })
+  } catch (e) {
+    console.error(e); // Add error logging
+    return res.status(500).json({
+      message: "internal server error"
+    })
+  }
+})
 

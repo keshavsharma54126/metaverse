@@ -30,6 +30,7 @@ type Map = {
   width:number,
   height:number,
   users: number;
+  elements:Element[];
 }
 
 
@@ -676,7 +677,8 @@ const AdminDashboard = () => {
                   </div>
                   <div className="flex space-x-2">
                     <Button 
-                      onClick={() => {
+                      onClick={(e) => {
+                        e.stopPropagation();
                         setEditMap(map);
                         setMapName(map.name);
                         setMapThumbnail(map.thumbnail);
@@ -684,12 +686,16 @@ const AdminDashboard = () => {
                         
                       }} 
                       variant="outline" 
+
                       className="flex-1 border-gray-700/50 text-gray-300 hover:text-gray-100 hover:bg-gray-700/50 transition duration-200"
                     >
                       Edit
                     </Button>
                     <Button 
-                      onClick={() => handleDeleteMap(map.id)} 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteMap(map.id)
+                      }} 
                       variant="outline" 
                       className="flex-1 border-gray-700/50 text-red-600 hover:text-red-800 hover:bg-red-700/50 transition duration-200"
                     >

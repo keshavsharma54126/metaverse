@@ -80,8 +80,8 @@ model Map {
 
 model mapElements {
   id        String  @id @unique @default(cuid())  
-  name      String
-  mapId     String  @unique
+  name      String?
+  mapId     String  
   elementId String
   x         Int?
   y         Int?
