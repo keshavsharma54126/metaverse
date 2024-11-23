@@ -121,6 +121,17 @@ const MapEditor = ({mapId}:{mapId:string}) => {
           });
         });
 
+        avatars.forEach(avatar => {
+
+          const imageKey = `avatar_${avatar.id}`;
+          const url = new URL(avatar.imageUrl);
+          url.searchParams.append('t', Date.now().toString());
+          this.load.image({
+            key: imageKey,
+            url: url.toString(),
+          });
+        });
+
         // Add better error logging
         this.load.on('loaderror', (fileObj: any) => {
           console.error('Load Error:', {
@@ -259,7 +270,7 @@ const MapEditor = ({mapId}:{mapId:string}) => {
           setZoom(this.cameras.zoom);
         });
 
-        this.player = this.physics.add.sprite(100,100,avatars[0].imageUrl)
+        this.player = this.physics.add.sprite(100,100,`avatar_${avatars[1].id}`)
         .setOrigin(0)
         .setDepth(2)
         .setDisplaySize(1*gridSize,1*gridSize);
@@ -333,7 +344,7 @@ const MapEditor = ({mapId}:{mapId:string}) => {
       physics:{
         default:'arcade',
         arcade:{
-          debug:true
+          debug:false
         }
       }
     };
