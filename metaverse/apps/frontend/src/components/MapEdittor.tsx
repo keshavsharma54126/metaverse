@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import Phaser from 'phaser';
 import axios from 'axios';
-import { FiZoomIn, FiZoomOut, FiSave, FiMove, FiArrowLeft } from 'react-icons/fi';
+import { FiZoomIn, FiZoomOut, FiSave, FiMove, FiArrowLeft, FiSearch } from 'react-icons/fi';
 import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 
@@ -41,6 +41,8 @@ const MapEditor = ({mapId}:{mapId:string}) => {
   const [isDragging, setIsDragging] = useState(false);
   const [gridSize, setGridSize] = useState(32);
   const [avatars, setAvatars] = useState<Element[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
+
   // Fetch elements from backend
 
   useEffect(() => {
@@ -387,6 +389,10 @@ const MapEditor = ({mapId}:{mapId:string}) => {
     }
   }
 
+  const filteredElements = elements.filter(element =>
+    element.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <div className="flex flex-col md:flex-row h-screen bg-gradient-to-br from-gray-900 to-gray-800">
       {/* Element Palette - Now with responsive sidebar */}
@@ -395,8 +401,20 @@ const MapEditor = ({mapId}:{mapId:string}) => {
           <span className="bg-blue-500 w-2 h-8 rounded-full"></span>
           Elements Library
         </h2>
+
+        <div className="relative mb-4">
+          <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search elements..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+
         <div className="grid grid-cols-2 md:grid-cols-1 gap-4">
-          {elements.map((element) => (
+          {filteredElements.map((element) => (
             <div
               key={element.id}
               className={`p-4 rounded-xl cursor-pointer transition-all duration-300 transform hover:scale-102 ${
