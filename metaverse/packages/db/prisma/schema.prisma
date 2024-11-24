@@ -22,7 +22,7 @@ model User {
   role              Role
   spaces            Space[] @relation("AdminSpaces")
   invitedSpaces     Space[] @relation("MemberSpaces")
-  avatar            Avatar?  @relation(fields: [avatarId], references: [id])
+  avatar            Avatar?  @relation(fields: [avatarId], references: [id],onDelete:Cascade)
 }
 
 
@@ -42,8 +42,8 @@ model Space {
   updatedAt           DateTime  
   elements            spaceElements[]
   members             User[]  @relation("MemberSpaces")
-  admin               User   @relation(fields: [adminId], references: [id],name:"AdminSpaces")
-  map                 Map    @relation(fields: [mapId], references: [id])
+  admin               User   @relation(fields: [adminId], references: [id],name:"AdminSpaces",onDelete:Cascade)
+  map                 Map    @relation(fields: [mapId], references: [id],onDelete:Cascade)
 }
 
 model spaceElements {
@@ -53,8 +53,8 @@ model spaceElements {
   spaceId   String
   x         Int
   y         Int
-  space     Space  @relation(fields: [spaceId], references: [id])
-  element   Element @relation(fields: [elementId],references: [id])
+  space     Space  @relation(fields: [spaceId], references: [id],onDelete:Cascade)
+  element   Element @relation(fields: [elementId],references: [id],onDelete:Cascade)
 }
 
 model Element {
@@ -64,8 +64,8 @@ model Element {
   height   Int
   static   Boolean
   imageUrl String
-  mapElement mapElements[]
-  spaces    spaceElements[]
+  mapElement mapElements[] 
+  spaces    spaceElements[] 
 }
 
 model Map {
@@ -74,7 +74,7 @@ model Map {
   width               Int
   height              Int
   name                String
-  elements            mapElements[]
+  elements            mapElements[] 
   spaces              Space[]
 }
 
@@ -85,8 +85,8 @@ model mapElements {
   elementId String
   x         Int?
   y         Int?
-  map       Map    @relation(fields: [mapId], references: [id])
-  element   Element? @relation(fields: [elementId], references: [id])
+  map       Map    @relation(fields: [mapId], references: [id],onDelete:Cascade)
+  element   Element? @relation(fields: [elementId], references: [id],onDelete:Cascade)
 }
 
 model Avatar {

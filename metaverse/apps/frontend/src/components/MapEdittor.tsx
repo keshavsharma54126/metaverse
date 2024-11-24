@@ -375,6 +375,7 @@ const MapEditor = ({mapId}:{mapId:string}) => {
         mapId:mapId,
       }))
     }
+   
     try{
       const token = localStorage.getItem("authToken");
       await axios.put(`${BACKEND_URL}/admin/mapElements/${mapId}`,mapData,{
@@ -384,6 +385,7 @@ const MapEditor = ({mapId}:{mapId:string}) => {
         }
       })
       toast.success("Map saved successfully")
+      setSelectedElement(null)
     }catch(e){
       toast.error("Failed to save map")
     }
