@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Plus, Search, Star, Clock, Settings, LogOut, Map } from 'lucide-react';
+import { Plus, Search, Star, Clock, Settings, LogOut, Map, Menu } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/Tabs';
 import { Input } from '../components/Input';
 import { Button } from '../components/Button';
@@ -8,7 +8,7 @@ import { Label } from '../components/Label';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import 'react-toastify/dist/ReactToastify.css'
 
 type Avatar={
   id:number,
@@ -55,7 +55,12 @@ const AdminDashboard = () => {
   const [mapName, setMapName] = useState("");
   const [mapThumbnail, setMapThumbnail] = useState("");
   const [mapDimensions, setMapDimensions] = useState("");
+
+  const [searchElement,setSearchElement]=useState("")
+  const [searchAvatar,setSearchAvatar]=useState("")
+  const [searchMap,setSearchMap]=useState("")
  
+
 
   useEffect(()=>{
     updateAvatars()
@@ -328,21 +333,19 @@ const AdminDashboard = () => {
       console.error(e,"error while logging out")
     }
   }
-  if(!localStorage.getItem("authToken")){
-    navigate("/adminSignin")
-  }
-  if(!localStorage.getItem("authToken")){
-    navigate("/adminSignin")
-  }
-  if(!localStorage.getItem("authToken")){
-    navigate("/adminSignin")
-  }
+  const filteredElemens = elements.filter(element => element.name.toLowerCase().includes(searchElement.toLowerCase()))
+  const filteredAvatars = avatars.filter(avatar => avatar.name.toLowerCase().includes(searchAvatar.toLowerCase()))
+  const filteredMaps = maps.filter(map => map.name.toLowerCase().includes(searchMap.toLowerCase()))
   return (
     <div className="flex flex-col md:flex-row h-screen bg-[#0a0a0c]">
       {/* Sidebar - slightly lighter than main background */}
+
+      
       <div className="w-full md:w-72 bg-[#151518] p-6 border-b md:border-r border-gray-800/50 shadow-xl">
+   
         <div className="flex items-center justify-between md:justify-start space-x-3 mb-8">
           <div className="flex items-center space-x-3">
+          
             <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
               <span className="text-white text-xl font-bold">M</span>
             </div>
@@ -350,16 +353,9 @@ const AdminDashboard = () => {
           </div>
         </div>
 
-        {/* Search input - softer dark */}
-        <div className="relative mb-8 hidden md:block">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-          <Input 
-            className="w-full pl-10 bg-[#2a2b32]/50 backdrop-blur-sm border-gray-700/50 text-gray-200 placeholder-gray-500 focus:ring-2 focus:ring-purple-500/50 transition-all" 
-            placeholder="Search..."
-          />
-        </div>
-
-        {/* Enhanced sidebar buttons */}
+        
+        <div>
+          
         <div className="flex md:block overflow-x-auto md:overflow-x-visible space-x-2 md:space-x-0 md:space-y-2">
           {[
             { icon: Map, label: 'Manage Spaces' },
@@ -378,6 +374,7 @@ const AdminDashboard = () => {
               <span className="hidden md:inline font-medium">{item.label}</span>
             </Button>
           ))}
+        </div>
         </div>
       </div>
 
@@ -400,8 +397,22 @@ const AdminDashboard = () => {
 
           {/* Update the cards with enhanced styling */}
           <TabsContent value="elements" className="mt-6">
+            <div className="relative mb-6">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <Input 
+                  className="w-1/3 bg-[#151518] text-gray-200 pl-10 border-gray-800 focus:ring-2 focus:ring-purple-500/50"
+                  placeholder="Search for elements..."
+                  value={searchElement}
+                  onChange={(e)=>{
+                    setSearchElement(e.target.value)
+                  }}
+                />
+              </div>
+            </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {/* Add New Element Card */}
+              
               <div className="group bg-[#151518] hover:bg-[#1a1a1f] rounded-xl p-6 border border-gray-800 hover:border-purple-500/50 transition-all duration-500 shadow-lg hover:shadow-purple-500/10">
                 <h3 className="text-xl font-bold text-gray-100 mb-6 tracking-tight">Add New Element</h3>
                 <div className="space-y-4">
@@ -454,7 +465,7 @@ const AdminDashboard = () => {
                     />
                     <Label htmlFor="static" className="text-gray-300">Static Element</Label>
                   </div>
-                  <div className="flex space-x-2 justify-end ">
+                  <div className="flex justify-end flex-col gap-2 ">
                   <Button 
                     className="w-full bg-purple-600 hover:bg-purple-700 text-white transition duration-200"
                     onClick={handleCreateElement}
@@ -476,7 +487,7 @@ const AdminDashboard = () => {
               </div>
 
               {/* Existing Elements */}
-              {elements.map((element) => (
+              {filteredElemens.map((element) => (
                 <div key={element.id} className="group bg-[#151518] hover:bg-[#1a1a1f] rounded-xl p-6 border border-gray-800 hover:border-purple-500/50 transition-all duration-500 shadow-lg hover:shadow-purple-500/10">
                   <div className="overflow-hidden rounded-lg mb-4 bg-[#0a0a0c] border border-gray-800">
                     <img 
@@ -526,6 +537,19 @@ const AdminDashboard = () => {
 
           {/* Avatars Tab */}
           <TabsContent value="avatars" className="mt-6">
+          <div className="relative mb-6">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <Input 
+                  className="w-1/3 bg-[#151518] text-gray-200 pl-10 border-gray-800 focus:ring-2 focus:ring-purple-500/50"
+                  placeholder="Search for an avatar..."
+                  value={searchAvatar}
+                  onChange={(e)=>{
+                    setSearchAvatar(e.target.value)
+                  }}
+                />
+              </div>
+            </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {/* Add New Avatar Card */}
               <div className="group bg-[#151518] hover:bg-[#1a1a1f] rounded-xl p-6 border border-gray-800 hover:border-purple-500/50 transition-all duration-500 shadow-lg hover:shadow-purple-500/10">
@@ -568,7 +592,7 @@ const AdminDashboard = () => {
               </div>
 
               {/* Existing Avatars */}
-              {avatars.map((avatar) => (
+              {filteredAvatars.map((avatar) => (
                 <div key={avatar.id} className="group bg-[#151518] hover:bg-[#1a1a1f] rounded-xl p-6 border border-gray-800 hover:border-purple-500/50 transition-all duration-500 shadow-lg hover:shadow-purple-500/10">
                   <div className="relative w-32 h-32 mx-auto mb-4">
                     <div className="absolute inset-0 bg-gradient-to-br from-purple-900/50 to-blue-900/50 rounded-full blur-xl group-hover:blur-2xl transition-all duration-500"></div>
@@ -600,6 +624,19 @@ const AdminDashboard = () => {
 
           {/* Maps Tab */}
           <TabsContent value="maps" className="mt-6">
+          <div className="relative mb-6 ">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <Input 
+                  className="w-1/3 bg-[#151518] text-gray-200 pl-10 border-gray-800 focus:ring-2 focus:ring-purple-500/50"
+                  placeholder="Search for a map..."
+                  value={searchMap}
+                  onChange={(e)=>{
+                    setSearchMap(e.target.value)
+                  }}
+                />
+              </div>
+            </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {/* Add New Map Card */}
               <div className="group bg-[#151518] hover:bg-[#1a1a1f] rounded-xl p-6 border border-gray-800 hover:border-purple-500/50 transition-all duration-500 shadow-lg hover:shadow-purple-500/10">
@@ -630,10 +667,11 @@ const AdminDashboard = () => {
                       value={mapDimensions}
                       onChange={(e) => setMapDimensions(e.target.value)}
                       placeholder="1920x1080"
+                     
                     />
                   </div>
                   
-                  <div className="flex space-x-2">
+                  <div className="flex flex-col gap-2">
                     <Button 
                       className="w-full bg-purple-600 hover:bg-purple-700 text-white transition duration-200"
                       onClick={handleCreateMap}
@@ -655,7 +693,7 @@ const AdminDashboard = () => {
               </div>
 
               {/* Existing Maps */}
-              {maps.map((map) => (
+              {filteredMaps.map((map) => (
                 <div onClick={()=>{
                   navigate(`/map/${map.id}`)
                 }} key={map.id} className="group bg-[#151518] hover:bg-[#1a1a1f] rounded-xl p-6 border border-gray-800 hover:border-purple-500/50 transition-all duration-500 shadow-lg hover:shadow-purple-500/10">

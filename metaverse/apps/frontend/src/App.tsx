@@ -8,6 +8,7 @@ import Space from "../src/components/space"
 import AdminSignIn from "./pages/AdminSignIn";
 import AdminDashboard from "./pages/AdminDashboard";
 import MapMaker from "./pages/MapMaker";
+import Assignment from "./pages/Assignment";
 function App() {
   return (
     <>
@@ -21,6 +22,7 @@ function App() {
           <Route path="/adminDashboard" element={<AdminDashboard/>}/>
           <Route path="/world" element={<Space/>}/>
           <Route path="/map/:id" element={<MapMaker/>} />
+          <Route path="/assignment" element={<Assignment/>} />
         </Routes>
       </BrowserRouter>
     </>

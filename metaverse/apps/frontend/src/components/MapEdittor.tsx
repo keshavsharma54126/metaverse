@@ -100,7 +100,6 @@ const MapEditor = ({mapId}:{mapId:string}) => {
     class MapScene extends Phaser.Scene {
       private placedElements: Phaser.GameObjects.Image[] = [];
       private dragPreview: Phaser.GameObjects.Image | null = null;
-      private collisionLayer: Phaser.GameObjects.Graphics | null = null;
       private grid: Phaser.GameObjects.Grid | null = null;
       private cameras: Phaser.Cameras.Scene2D.CameraManager | null = null;
       private player: Phaser.Physics.Arcade.Sprite | null = null;
@@ -385,7 +384,7 @@ const MapEditor = ({mapId}:{mapId:string}) => {
         }
       })
       toast.success("Map saved successfully")
-      setSelectedElement(null)
+      
     }catch(e){
       toast.error("Failed to save map")
     }
@@ -510,6 +509,8 @@ const MapEditor = ({mapId}:{mapId:string}) => {
             className="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-xl hover:from-blue-700 hover:to-blue-600 transition-all duration-300 flex items-center gap-2 shadow-xl group"
             onClick={() => {
               saveMap();
+              setSelectedElement(null)
+              window.location.reload();
             }}
           >
             <FiSave size={20} className="group-hover:scale-110 transition-transform" />
