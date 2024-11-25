@@ -37,7 +37,7 @@ userRouter.post("/metadata", userMiddleware, async (req: any, res: any) => {
   }
 });
 
-userRouter.get("/metadat/bulk", adminMiddleware, async (req: any, res: any) => {
+userRouter.get("/metadata/bulk", adminMiddleware, async (req: any, res: any) => {
   const userIds = (req.query.userIds ?? "[]") as string;
   const parsedUserIds = userIds.slice(1, userIds?.length - 2).split(",");
   try {
@@ -64,3 +64,31 @@ userRouter.get("/metadat/bulk", adminMiddleware, async (req: any, res: any) => {
     });
   }
 });
+
+userRouter.get("/metadata/:userId",userMiddleware,async(req:any,res:any)=>{
+  try{
+    const user = await client.user.findUnique({
+      where:{id:req.params.userId},
+      include:{
+        avatar:{
+          select:{
+            id:true,
+            imageUrl:true
+          }
+        }
+      }
+    })
+    if(!user){
+      return res.status(400).json({
+        message:"user not found"
+      })
+    }
+    return res.status(200).json({
+      user:user
+    })
+  }catch(e){
+    return res.status(400).json({
+      message:"internal server error"
+    })
+  }
+})

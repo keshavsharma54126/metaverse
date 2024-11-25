@@ -188,6 +188,116 @@ const LandingPage = () => {
         </div>
       </section>
 
+      {/* Pricing Section */}
+      <section id="pricing" className="py-20 relative">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-5xl font-bold mb-4">Simple, Transparent Pricing</h2>
+            <p className="text-gray-400 max-w-2xl mx-auto">
+              Choose the perfect plan for your team's virtual workspace needs
+            </p>
+          </div>
+          
+          <div className="grid md:grid-cols-3 gap-8">
+            {/* Basic Plan */}
+            <div className="relative bg-white/5 backdrop-blur-sm rounded-2xl p-8 hover:bg-white/10 transition duration-300">
+              <div className="absolute inset-0 bg-gradient-to-r from-violet-500/10 to-fuchsia-500/10 rounded-2xl opacity-0 hover:opacity-100 transition duration-300" />
+              <div className="relative">
+                <h3 className="text-xl font-semibold mb-4">Starter</h3>
+                <div className="mb-6">
+                  <span className="text-4xl font-bold">$0</span>
+                  <span className="text-gray-400">/month</span>
+                </div>
+                <ul className="space-y-4 mb-8">
+                  <li className="flex items-center gap-2">
+                    <ChevronRight className="w-5 h-5 text-violet-400" />
+                    <span>Up to 5 team members</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <ChevronRight className="w-5 h-5 text-violet-400" />
+                    <span>Basic virtual space</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <ChevronRight className="w-5 h-5 text-violet-400" />
+                    <span>Standard audio & video</span>
+                  </li>
+                </ul>
+                <button className="w-full bg-white/10 text-white px-6 py-3 rounded-full hover:bg-white/20 transition">
+                  Get Started
+                </button>
+              </div>
+            </div>
+
+            {/* Pro Plan */}
+            <div className="relative bg-gradient-to-r from-violet-500/20 to-fuchsia-500/20 backdrop-blur-sm rounded-2xl p-8 transform hover:scale-105 transition duration-300">
+              <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white px-4 py-1 rounded-full text-sm">
+                Most Popular
+              </div>
+              <div className="relative">
+                <h3 className="text-xl font-semibold mb-4">Pro</h3>
+                <div className="mb-6">
+                  <span className="text-4xl font-bold">$29</span>
+                  <span className="text-gray-400">/month</span>
+                </div>
+                <ul className="space-y-4 mb-8">
+                  <li className="flex items-center gap-2">
+                    <ChevronRight className="w-5 h-5 text-violet-400" />
+                    <span>Up to 20 team members</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <ChevronRight className="w-5 h-5 text-violet-400" />
+                    <span>Custom virtual spaces</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <ChevronRight className="w-5 h-5 text-violet-400" />
+                    <span>HD audio & video</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <ChevronRight className="w-5 h-5 text-violet-400" />
+                    <span>Interactive objects</span>
+                  </li>
+                </ul>
+                <button className="w-full bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white px-6 py-3 rounded-full hover:opacity-90 transition">
+                  Start Free Trial
+                </button>
+              </div>
+            </div>
+
+            {/* Enterprise Plan */}
+            <div className="relative bg-white/5 backdrop-blur-sm rounded-2xl p-8 hover:bg-white/10 transition duration-300">
+              <div className="absolute inset-0 bg-gradient-to-r from-violet-500/10 to-fuchsia-500/10 rounded-2xl opacity-0 hover:opacity-100 transition duration-300" />
+              <div className="relative">
+                <h3 className="text-xl font-semibold mb-4">Enterprise</h3>
+                <div className="mb-6">
+                  <span className="text-4xl font-bold">Custom</span>
+                </div>
+                <ul className="space-y-4 mb-8">
+                  <li className="flex items-center gap-2">
+                    <ChevronRight className="w-5 h-5 text-violet-400" />
+                    <span>Unlimited team members</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <ChevronRight className="w-5 h-5 text-violet-400" />
+                    <span>Advanced customization</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <ChevronRight className="w-5 h-5 text-violet-400" />
+                    <span>Priority support</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <ChevronRight className="w-5 h-5 text-violet-400" />
+                    <span>API access</span>
+                  </li>
+                </ul>
+                <button className="w-full bg-white/10 text-white px-6 py-3 rounded-full hover:bg-white/20 transition">
+                  Contact Sales
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* CTA Section */}
       <section className="py-20 relative">
         <div className="absolute inset-0 bg-gradient-to-r from-violet-500/10 via-fuchsia-500/10 to-cyan-500/10" />

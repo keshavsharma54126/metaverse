@@ -20,9 +20,10 @@ const SignIn = () => {
       password:form.password
     })
     const token = res.data.token;
-    console.log(token)
+    
     //here we have to set the token in the localstorage of browser
     localStorage.setItem("authToken",`${token}`)
+    
     navigate("/dashboard")
     
    }catch(e){

@@ -1,19 +1,25 @@
-'use client'
-
 import { useEffect, useState } from 'react'
 
 export default function FancyLoader() {
   const [progress, setProgress] = useState(0)
+  const [isComplete, setIsComplete] = useState(false)
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setProgress((prev) => (prev >= 100 ? 0 : prev + 1))
-    }, 30)
+      setProgress((prev) => {
+        if (prev >= 100) {
+          clearInterval(timer)
+          setIsComplete(true)
+          return 100
+        }
+        return prev + 1
+      })
+    }, 50)
     return () => clearInterval(timer)
   }, [])
 
   return (
-    <div className="relative min-h-screen w-full overflow-hidden bg-gradient-to-b from-[#1e2242] to-[#2f3374] p-8">
+    <div className="relative min-h-[400px] w-full overflow-hidden bg-gradient-to-b from-[#1e2242] to-[#2f3374] p-8">
       {/* Stars */}
       {[...Array(20)].map((_, i) => (
         <div
@@ -32,8 +38,12 @@ export default function FancyLoader() {
       <div className="relative z-10 flex flex-col items-center justify-center space-y-6">
         {/* Loading Text */}
         <div className="text-center">
-          <h2 className="mb-2 text-3xl font-bold text-white">Loading your space</h2>
-          <p className="text-lg text-gray-300">Please wait while we prepare everything...</p>
+          <h2 className="mb-2 text-3xl font-bold text-white">
+            {isComplete ? "Ready to go!" : "Loading your space"}
+          </h2>
+          <p className="text-lg text-gray-300">
+            {isComplete ? "Your virtual HQ is set up." : "Please wait while we prepare everything..."}
+          </p>
         </div>
 
         {/* Progress Bar */}
@@ -46,8 +56,16 @@ export default function FancyLoader() {
 
         {/* Progress Text */}
         <div className="text-sm font-medium text-white">{progress}%</div>
+
+        {/* Complete Message */}
+        {isComplete && (
+          <div className="mt-4 animate-fadeIn">
+            <button className="rounded bg-[#00e5a0] px-4 py-2 font-bold text-[#1e2242] transition-colors hover:bg-[#00c589]">
+              Enter Space
+            </button>
+          </div>
+        )}
       </div>
     </div>
   )
 }
-
