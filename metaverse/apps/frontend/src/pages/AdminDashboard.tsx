@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Plus, Search, Star, Clock, Settings, LogOut, Map, Menu } from 'lucide-react';
+import { Plus, Search, Star, Clock, Settings, LogOut, Map, Menu, Loader2 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/Tabs';
 import { Input } from '../components/Input';
 import { Button } from '../components/Button';
@@ -59,6 +59,7 @@ const AdminDashboard = () => {
   const [searchElement,setSearchElement]=useState("")
   const [searchAvatar,setSearchAvatar]=useState("")
   const [searchMap,setSearchMap]=useState("")
+  const [loading,setLoading]=useState(true)
  
 
 
@@ -66,6 +67,7 @@ const AdminDashboard = () => {
     updateAvatars()
     updateElements()
     updateMaps()
+    setLoading(false)
   },[])
 
 
@@ -325,7 +327,6 @@ const AdminDashboard = () => {
   };
 
   const handleLogout = ()=>{
-    console.log("clicked")
     try{
       localStorage.removeItem("authToken")
       navigate("/adminSignin")
@@ -333,9 +334,18 @@ const AdminDashboard = () => {
       console.error(e,"error while logging out")
     }
   }
+
   const filteredElemens = elements.filter(element => element.name.toLowerCase().includes(searchElement.toLowerCase()))
   const filteredAvatars = avatars.filter(avatar => avatar.name.toLowerCase().includes(searchAvatar.toLowerCase()))
   const filteredMaps = maps.filter(map => map.name.toLowerCase().includes(searchMap.toLowerCase()))
+
+  if(loading){
+    return <div className="flex items-center justify-center h-screen">
+      <Loader2 className="w-12 h-12 animate-spin text-purple-500" />
+    </div>
+  }
+  else{
+    
   return (
     <div className="flex flex-col md:flex-row h-screen bg-[#0a0a0c]">
       {/* Sidebar - slightly lighter than main background */}
@@ -754,6 +764,8 @@ const AdminDashboard = () => {
       />
     </div>
   );
+  }
+
 };
 
 export default AdminDashboard;

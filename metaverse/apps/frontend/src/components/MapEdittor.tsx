@@ -4,6 +4,7 @@ import axios from 'axios';
 import { FiZoomIn, FiZoomOut, FiSave, FiMove, FiArrowLeft, FiSearch } from 'react-icons/fi';
 import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import FancyLoader from './Loader';
 
 
 interface Element {
@@ -37,11 +38,12 @@ const MapEditor = ({mapId}:{mapId:string}) => {
   const [elements, setElements] = useState<Element[]>([]);
   const [selectedElement, setSelectedElement] = useState<Element | null>(null);
   const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
-  const [zoom, setZoom] = useState(1);
+  const [zoom, setZoom] = useState(2);
   const [isDragging, setIsDragging] = useState(false);
   const [gridSize, setGridSize] = useState(32);
   const [avatars, setAvatars] = useState<Element[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [loading,setLoading]=useState(true)
 
   // Fetch elements from backend
 
@@ -92,6 +94,12 @@ const MapEditor = ({mapId}:{mapId:string}) => {
     fetchElements();
     fetchMap();
     fetchAvatars();
+
+    Promise.all([fetchElements(), fetchMap(), fetchAvatars()]).then(() => {
+        setLoading(false)
+    });
+    
+    
   }, []);
 
   useEffect(() => {
@@ -199,8 +207,9 @@ const MapEditor = ({mapId}:{mapId:string}) => {
             });
 
             this.placedElements.push(placedElement);
+            
           })
-
+          
 
 
         // Create preview image that follows mouse
@@ -301,7 +310,10 @@ const MapEditor = ({mapId}:{mapId:string}) => {
       if (this.input?.keyboard) {
         this.cursors = this.input.keyboard.createCursorKeys();
       }
+
+      
     }
+   
       }
       update(){
         if(!this.player || !this.cursors){
@@ -343,6 +355,7 @@ const MapEditor = ({mapId}:{mapId:string}) => {
       
     }
 
+
     const config: Phaser.Types.Core.GameConfig = {
       type: Phaser.AUTO,
       parent: phaserRef.current,
@@ -357,9 +370,12 @@ const MapEditor = ({mapId}:{mapId:string}) => {
         }
       }
     };
-
+    
     gameRef.current = new Phaser.Game(config);
-
+    gameRef.current.events.once('ready', () => {
+      setLoading(false);
+    });
+    
     return () => {
       gameRef.current?.destroy(true);
     };
@@ -393,9 +409,14 @@ const MapEditor = ({mapId}:{mapId:string}) => {
   const filteredElements = elements.filter(element =>
     element.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
-
-  return (
-    <div className="flex flex-col md:flex-row h-screen bg-gradient-to-br from-gray-900 to-gray-800">
+ 
+  if(loading){
+    return <FancyLoader/>
+    
+  }
+  else{ 
+    return (
+      <div className="flex flex-col md:flex-row h-screen bg-gradient-to-br from-gray-900 to-gray-800">
       {/* Element Palette - Now with responsive sidebar */}
       <div className="w-full md:w-80 lg:w-96 bg-gray-800 p-4 md:p-6 overflow-y-auto border-b md:border-r border-gray-700/50 backdrop-blur-sm">
         <h2 className="text-2xl font-bold mb-6 text-white flex items-center gap-3">
@@ -520,6 +541,7 @@ const MapEditor = ({mapId}:{mapId:string}) => {
       </div>
     </div>
   );
-};
+  }
+}
 
 export default MapEditor;

@@ -131,7 +131,10 @@ const Dashboard = () => {
                   className={`group cursor-pointer overflow-hidden rounded-xl bg-gray-900 border border-gray-800 transition-all hover:border-violet-500 ${
                     selectedSpace === space.id ? "ring-2 ring-violet-500" : ""
                   }`}
-                  onClick={() => setSelectedSpace(space.id)}
+                  onClick={() => {
+                    setSelectedSpace(space.id)
+                    navigate(`/world`)
+                  }}
                 >
                   {/* Thumbnail */}
                   <div className="relative h-48 bg-gray-800 overflow-hidden">

@@ -4,11 +4,11 @@ import LandingPage from "./pages/LandingPage";
 import Signup  from "./pages/Signup";
 import Signin from "./pages/Signin";
 import Dashboard from "./pages/Dashboard";
-import Space from "../src/components/space"
 import AdminSignIn from "./pages/AdminSignIn";
 import AdminDashboard from "./pages/AdminDashboard";
 import MapMaker from "./pages/MapMaker";
 import Assignment from "./pages/Assignment";
+import Spaces from "./pages/Spaces";
 function App() {
   return (
     <>
@@ -20,9 +20,9 @@ function App() {
           <Route path="/adminsignin" element={<AdminSignIn/>}/>
           <Route path="/dashboard" element={<Dashboard/>}/>
           <Route path="/adminDashboard" element={<AdminDashboard/>}/>
-          <Route path="/world" element={<Space/>}/>
           <Route path="/map/:id" element={<MapMaker/>} />
           <Route path="/assignment" element={<Assignment/>} />
+          <Route path="/space/:id" element={<Spaces/>} />
         </Routes>
       </BrowserRouter>
     </>
