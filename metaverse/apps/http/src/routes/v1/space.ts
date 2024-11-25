@@ -18,55 +18,86 @@ spaceRouter.post("/", userMiddleware, async (req: any, res: any) => {
   }
   try {
     if (!parsedData.data.mapId) {
-      const space = await client.space.create({
-        data: {
-          name: parsedData.data.name,
-          width: parseInt(parsedData.data.dimensions.split("x")[0]),
-          height: parseInt(parsedData.data.dimensions.split("x")[1]),
-          adminId: req.userId,
-        },
-      });
-      return res.status(200).json({
-        spaceId: space.id,
+      return res.status(400).json({
+        message: "map id is required",
       });
     }
     const map = await client.map.findUnique({
       where: {
         id: parsedData.data.mapId,
       },
-      select: {
-        elements: true,
-        width: true,
-        height: true,
-      },
+      include:{
+        elements:{
+          select:{
+            name:true,
+            elementId:true,
+            x:true,
+            y:true,
+            element:{
+              select:{
+                name:true
+              }
+            }
+          }
+        }
+      }
     });
+    
     if (!map) {
       return res.status(400).json({
         message: "map not found",
       });
     }
-    let space = await client.$transaction(async () => {
-      const space = await client.space.create({
-        data: {
-          name: parsedData.data.name,
-          width: map.width,
-          height: map.height,
-          adminId: req.userId,
-        },
+    
+    
+    try {
+      let space = await client.$transaction(async (tx) => {
+
+        const space = await tx.space.create({
+          data: {
+            name: parsedData.data.name,
+            width: map.width,
+            height: map.height,
+            description: parsedData.data.description,
+            capacity: parsedData.data.capacity,
+            thumbnail: map.thumbnail,
+            adminId: req.userId,
+            mapId: parsedData.data.mapId,
+            updatedAt: new Date(),
+          },
+        });
+
+      
+        if (map.elements && map.elements.length > 0) {
+          await tx.spaceElements.createMany({
+            data: map.elements.map((e: any) => ({
+              elementId: e.elementId,
+              spaceId: space.id,
+              x: e.x,
+              y: e.y,
+              name: e.element.name 
+            }))
+          });
+    
+        }
+
+        return space;
       });
-      await client.spaceElements.createMany({
-        data: map.elements.map((e) => ({
-          elementId: e.elementId,
-          spaceId: space.id,
-          x: e.x!,
-          y: e.y!,
-        })),
+
+      console.log("Transaction completed:", space);
+      return res.status(200).json({ space });
+
+    } catch (transactionError) {
+      console.error("Transaction Error:", transactionError);
+      return res.status(500).json({
+        message: "Error creating space",
       });
-      return space;
-    });
-  } catch (e) {
+    }
+  } catch (e:any) {
+    console.error("Outer Error:", e);
     return res.status(500).json({
       message: "internal server error",
+      error: e.message
     });
   }
 });
@@ -102,11 +133,11 @@ spaceRouter.delete("/:spaceId", userMiddleware, async (req: any, res: any) => {
   }
 });
 
-spaceRouter.get("/all", userMiddleware, async (req: any, res: any) => {
+spaceRouter.get("/all/:userId", userMiddleware, async (req: any, res: any) => {
   try {
     const spaces = await client.space.findMany({
       where: {
-        adminId: req.userId,
+        adminId: req.paramsuserId,
       },
     });
     if (!spaces) {

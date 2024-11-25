@@ -92,3 +92,24 @@ userRouter.get("/metadata/:userId",userMiddleware,async(req:any,res:any)=>{
     })
   }
 })
+
+userRouter.get("/maps", userMiddleware, async (req: any, res: any) => {
+  try{
+    const maps = await client.map.findMany({
+      include:{
+        elements:{
+          include:{
+            element:true
+          }
+        }
+      }
+    })
+    return res.status(200).json({
+      maps:maps
+    })
+  }catch(e){
+    return res.status(400).json({
+      message:"internal server error"
+    })
+  }
+});

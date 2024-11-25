@@ -33,7 +33,7 @@ model Space {
   description         String
   capacity            Int
   favourite           Boolean?
-  width               Int
+  width               Int?
   height              Int?
   thumbnail           String?
   adminId             String

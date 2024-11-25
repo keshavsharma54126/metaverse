@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Users,  Settings, LogOut, Plus, Search, Star, Clock, Loader2} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { DialogBox } from "../components/DialogBox";
 
 type User = {
   id:string,
@@ -18,7 +19,10 @@ type Avatar = {
 const Dashboard = () => {
   const [selectedSpace, setSelectedSpace] = useState(null);
   const[user,setUser] = useState<User|null>(null)
+  const[avatar,setAvatar] = useState<Avatar|null>(null)
   const[avatars,setAvatars] = useState<Avatar[]>([])
+  const[maps,setMaps] = useState([])
+  const[spaces,setSpaces] = useState<any[]>([])
   const[isLoading,setIsLoading] = useState(true)
   const navigate = useNavigate()
   const BACKEND_URL = import.meta.env.VITE_BACKEND_URL
@@ -53,53 +57,33 @@ const Dashboard = () => {
        
         setAvatars(res.data.avatars)
       }
-      Promise.all([fetchAvatar(),fetchAvatars()]).then(()=>{
+      const fetchMaps = async()=>{
+        const res = await axios.get(`${BACKEND_URL}/user/maps`,{
+          headers:{
+            Authorization:`Bearer ${token}`,
+            "Content-Type":"application/json"
+          }
+        })
+        setMaps(res.data.maps)
+      }
+      const fetchSpaces = async()=>{
+        try{
+          const res = await axios.get(`${BACKEND_URL}/space/all/${userId}`,{
+            headers:{
+              Authorization:`Bearer ${token}`,
+              "Content-Type":"application/json"
+            }
+          })
+          setSpaces(res.data.spaces)
+        }catch(err){
+          console.log(err)
+        }
+      }
+      Promise.all([fetchAvatar(),fetchAvatars(),fetchMaps(),fetchSpaces()]).then(()=>{
         setIsLoading(false)
       })
     },[])
 
-  const spaces = [
-    // {
-    //   id: 1,
-    //   name: "Tech Hub Campus",
-    //   description: "A virtual tech campus with meeting rooms, coffee shops, and collaboration zones",
-    //   thumbnail:"https://storage.icograms.com/templates/preview/traditional-complex.png",
-    //   participants: 12,
-    //   capacity: 50,
-    //   favorite: true,
-    //   lastVisited: "2 hours ago"
-    // },
-    // {
-    //   id: 2,
-    //   name: "Zen Garden Office",
-    //   description: "Peaceful workspace with meditation areas and quiet zones",
-    //   thumbnail:"https://i.ytimg.com/vi/JePchzu_USM/maxresdefault.jpg",
-    //   participants: 8,
-    //   capacity: 30,
-    //   favorite: false,
-    //   lastVisited: "1 day ago"
-    // },
-    // {
-    //   id: 3,
-    //   name: "Gaming Arena",
-    //   description: "Multiple gaming zones with arcade machines and party games",
-    //   thumbnail:"https://cdn.prod.website-files.com/640f99c52b298c7753381c38/64227fef3607a78fb7af2ca7_6180810f2fc8a74097527122_team.png",
-    //   participants: 15,
-    //   capacity: 40,
-    //   favorite: true,
-    //   lastVisited: "3 hours ago"
-    // },
-    // {
-    //   id: 4,
-    //   name: "Creative Studio",
-    //   description: "Art galleries, brainstorming rooms, and creative workshops",
-    //   thumbnail:"https://cdn.prod.website-files.com/640f99c52b298c7753381c38/671bb72e8e9a8737cf2cf456_CTO-Labs-Feature-Card-2x.png",
-    //   participants: 7,
-    //   capacity: 25,
-    //   favorite: false,
-    //   lastVisited: "5 days ago"
-    // }
-  ];
 
   if(isLoading){
     return (
@@ -214,7 +198,7 @@ else{
           </div>
           <button className="px-6 py-3 bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white rounded-lg hover:opacity-90 transition flex items-center gap-2">
             <Plus className="w-5 h-5" />
-            Create New Space
+            <DialogBox maps={maps} userId={user?.id}/>
           </button>
         </header>
 
@@ -235,7 +219,7 @@ else{
                   onClick={() => {/* Add your create space handler here */}}
                 >
                   <Plus className="w-5 h-5" />
-                  Create New Space
+                  <DialogBox maps={maps} userId={user?.id}/>
                 </button>
               </div>
             </div>
@@ -251,7 +235,7 @@ else{
               }`}
               onClick={() => {
                 setSelectedSpace(space.id)
-                navigate(`/world`)
+                navigate(`/space/${space.id}`)
               }}
             >
               {/* Thumbnail */}
@@ -284,9 +268,20 @@ else{
                   <span className="text-sm text-gray-500">Last visited: {space.lastVisited}</span>
                   <button
                     className="px-4 py-2 bg-gradient-to-r from-red-500 to-fuchsia-500 text-white rounded-lg hover:opacity-90 transition"
-                    onClick={(e) => {
+                    onClick={async(e) => {
+                     try{
                       e.stopPropagation();
-                      alert(`Entering ${space.name}`);
+                      const token = localStorage.getItem("authToken")
+                      await axios.delete(`${BACKEND_URL}/space/${space.id}`,{
+                        headers:{
+                          Authorization:`Bearer ${token}`,
+                          "Content-Type":"application/json"
+                        }
+                      })
+                      window.location.reload()
+                     }catch(err){
+                      console.error(err,"errro while deleting space")
+                     }
                     }}
                   >
                     Delete Space

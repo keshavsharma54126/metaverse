@@ -15,10 +15,12 @@ export const UpdateMetadataSchema = z.object({
 });
 
 export const CreateSpaceSchema = z.object({
+  adminId:z.string(),
   name: z.string(),
-  //dimensions in format of "1000x1000"
-  dimensions: z.string().regex(/^[0-9]{1,4}x[0-9]{1,4}$/),
+  description:z.string(),
+  capacity:z.number(),
   mapId: z.string(),
+
 });
 
 export const AddElementSchema = z.object({
