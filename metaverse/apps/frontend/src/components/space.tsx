@@ -1,8 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import Phaser from 'phaser';
 import axios from 'axios';
-import { FiZoomIn, FiZoomOut, FiSave, FiMove, FiArrowLeft, FiSearch } from 'react-icons/fi';
-import { Link } from 'react-router-dom';
+import { FiZoomIn, FiZoomOut} from 'react-icons/fi';
 import { toast } from 'react-toastify';
 import FancyLoader from './Loader';
 
@@ -30,7 +29,18 @@ interface Map{
   elements:Element[];
 }
 
-const Space = ({spaceId}:{spaceId:string}) => {
+type Space = {
+  id:string;
+  name:string;
+  thumbnail:string;
+  description:string;
+  capacity:number;
+  width:number;
+  height:number;
+  elements:Element[];
+}
+
+const SpaceComponent = ({space}:{space:Space}) => {
 
   const phaserRef = useRef<HTMLDivElement>(null);
   const [map,setMap] = useState<Map|null>(null);
@@ -417,132 +427,49 @@ const Space = ({spaceId}:{spaceId:string}) => {
   }
   else{ 
     return (
-      <div className="flex flex-col md:flex-row h-screen bg-gradient-to-br from-gray-900 to-gray-800">
-      {/* Element Palette - Now with responsive sidebar */}
-      <div className="w-full md:w-80 lg:w-96 bg-gray-800 p-4 md:p-6 overflow-y-auto border-b md:border-r border-gray-700/50 backdrop-blur-sm">
-        <h2 className="text-2xl font-bold mb-6 text-white flex items-center gap-3">
-          <span className="bg-blue-500 w-2 h-8 rounded-full"></span>
-          Elements Library
-        </h2>
-
-        <div className="relative mb-4">
-          <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Search elements..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-gray-700/50 border border-gray-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-
-        <div className="grid grid-cols-2 md:grid-cols-1 gap-4">
-          {filteredElements.map((element) => (
-            <div
-              key={element.id}
-              className={`p-4 rounded-xl cursor-pointer transition-all duration-300 transform hover:scale-102 ${
-                selectedElement?.id === element.id
-                  ? 'bg-gradient-to-r from-blue-600 to-blue-500 shadow-xl shadow-blue-500/20'
-                  : 'bg-gray-700/50 hover:bg-gray-600/50 backdrop-blur-sm'
-              }`}
-              onClick={() => {
-                if(selectedElement?.id===element.id){
-                  setSelectedElement(null)
-                }
-                else{
-                  setSelectedElement(element)
-                }
-              }}
-            >
-              <div className="relative group">
-                <img
-                  src={element.imageUrl}
-                  alt={element.name}
-                  className="w-full h-24 object-contain mb-3 rounded-lg transition-transform group-hover:scale-105"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-lg" />
-              </div>
-              <p className="text-sm font-medium text-white">{element.name}</p>
-              <div className="flex items-center justify-between mt-2">
-                <p className="text-xs text-gray-400">
-                  {element.width}x{element.height}
-                </p>
-                {selectedElement?.id === element.id && (
-                  <span className="text-xs text-emerald-400">Selected</span>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Map Canvas */}
-      <div className="flex-1 relative">
-        <div ref={phaserRef} className="w-full h-full" />
-        
-        {/* Enhanced Floating Toolbar */}
-        <div className="absolute top-4 right-4 flex flex-col gap-3">
-          {/* Back to Dashboard Button - NEW */}
-          <Link
-            to="/adminDashboard"
-            className="px-6 py-3 bg-gray-800/90 backdrop-blur-md text-white rounded-xl hover:bg-gray-700/90 transition-all duration-300 flex items-center gap-2 shadow-xl group border border-gray-700/50"
-          >
-            <FiArrowLeft size={20} className="group-hover:scale-110 transition-transform" />
-            <span className="hidden md:inline">Back to Dashboard</span>
-          </Link>
-
-          {/* Tools Group */}
-          <div className="bg-gray-800/90 backdrop-blur-md p-2 rounded-2xl shadow-xl border border-gray-700/50">
-            <div className="flex flex-col gap-2">
-              <button
-                className="p-2.5 text-white hover:bg-blue-500/20 rounded-xl transition-all duration-300 group"
-                onClick={() => setIsDragging(!isDragging)}
-                title="Toggle Move Mode"
-              >
-                <FiMove size={20} className="group-hover:scale-110 transition-transform" />
-              </button>
-              <button
-                className="p-2.5 text-white hover:bg-blue-500/20 rounded-xl transition-all duration-300 group"
-                onClick={() => {
-                  const scene = gameRef.current?.scene.getScene('MapScene') as any;
-                  scene.cameras.setZoom(Math.min(scene.cameras.zoom + 0.2, 2));
-                  setZoom(scene.cameras.zoom);
-                }}
-                title="Zoom In"
-              >
-                <FiZoomIn size={20} className="group-hover:scale-110 transition-transform" />
-              </button>
-              <button
-                className="p-2.5 text-white hover:bg-blue-500/20 rounded-xl transition-all duration-300 group"
-                onClick={() => {
-                  const scene = gameRef.current?.scene.getScene('MapScene') as any;
-                  scene.cameras.setZoom(Math.max(scene.cameras.zoom - 0.2, 0.5));
-                  setZoom(scene.cameras.zoom);
-                }}
-                title="Zoom Out"
-              >
-                <FiZoomOut size={20} className="group-hover:scale-110 transition-transform" />
-              </button>
+      <div className="flex flex-col md:flex-row h-screen bg-gradient-to-br from-slate-900 to-indigo-900">
+        {/* Main Game Area */}
+        <div className="flex-1 relative">
+          <div ref={phaserRef} className="w-full h-full" />
+          
+          {/* Top Navigation Bar */}
+          <div className="absolute top-0 left-0 right-0 p-4 flex justify-between items-center bg-black/30 backdrop-blur-md">
+            <div className="flex items-center gap-4">
+              <h1 className="text-white text-xl font-semibold">{space.name}</h1>
             </div>
           </div>
 
-          {/* Save Button */}
-          <button
-            className="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-xl hover:from-blue-700 hover:to-blue-600 transition-all duration-300 flex items-center gap-2 shadow-xl group"
-            onClick={() => {
-              saveMap();
-              setSelectedElement(null)
-              window.location.reload();
-            }}
-          >
-            <FiSave size={20} className="group-hover:scale-110 transition-transform" />
-            <span  className="hidden md:inline">Save Map</span>
-          </button>
+          {/* Tools Panel */}
+          <div className="flex flex-col absolute left-1 top-1/2 -translate-y-1/2 bg-black/30 backdrop-blur-md rounded-2xl p-3 space-y-3 border border-white/10">
+            <button
+              className="p-3 text-white/80 hover:bg-white/10 rounded-xl transition-all duration-300"
+              onClick={() => {
+                const scene = gameRef.current?.scene.getScene('MapScene') as any;
+                scene.cameras.setZoom(Math.min(scene.cameras.zoom + 0.2, 2));
+                setZoom(scene.cameras.zoom);
+              }}
+              title="Zoom In"
+            >
+              <FiZoomIn size={24} />
+            </button>
+            
+            <button
+              className="p-3 text-white/80 hover:bg-white/10 rounded-xl transition-all duration-300"
+              onClick={() => {
+                const scene = gameRef.current?.scene.getScene('MapScene') as any;
+                scene.cameras.setZoom(Math.max(scene.cameras.zoom - 0.2, 0.5));
+                setZoom(scene.cameras.zoom);
+              }}
+              title="Zoom Out"
+            >
+              <FiZoomOut size={24} />
+            </button>
+          </div>
+         
         </div>
       </div>
-    </div>
-  );
+    );
   }
 }
 
-export default Space;
+export default SpaceComponent;
