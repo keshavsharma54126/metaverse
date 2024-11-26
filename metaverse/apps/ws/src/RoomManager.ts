@@ -20,7 +20,7 @@ export class RoomManager{
         if(!this.rooms.has(spaceId)){
             return
         }
-        this.rooms.set(spaceId,(this.rooms.get(spaceId)?.filter((u)=>u.id!== user.id)) ?? [])
+        this.rooms.set(spaceId,[...(this.rooms.get(spaceId)?.filter((u)=>u.id!== user.id)) ?? []])
     }
 
     public addUser(spaceId:string,user:User){
@@ -28,7 +28,7 @@ export class RoomManager{
             this.rooms.set(spaceId,[user])
             return
         }
-        this.rooms.set(spaceId, (this.rooms.get(spaceId)?.filter((u) => u.id !== user.id) ?? []));
+        this.rooms.set(spaceId,[...(this.rooms.get(spaceId)?.filter((u) => u.id !== user.id) ?? []),user]);
     }
     public broadcast(message:OutgoingMessage,user:User,roomId:string){
         if(!this.rooms.has(roomId)){

@@ -260,14 +260,20 @@ spaceRouter.get("/:spaceId", async (req: any, res: any) => {
       capacity:space.capacity,
       width:space.width,
       height:space.height,
+      mapId:space.mapId,
       elements: space.elements.map((e) => ({
         id: e.id,
+        name:e.name,
+        x:e.x,
+        y:e.y,
         element: {
           id: e.element.id,
           imageUrl: e.element.imageUrl,
           width: e.element.width,
           height: e.element.height,
           static: e.element.static,
+          name:e.element.name,
+          
         },
       })),
     });

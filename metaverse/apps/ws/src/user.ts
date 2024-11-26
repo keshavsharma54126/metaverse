@@ -22,8 +22,8 @@ export class User {
 
   constructor(ws: WebSocket) {
     this.id = getRandomId();
-    this.x = 0;
-    this.y = 0;
+    this.x = 100;
+    this.y = 100;
     this.ws = ws;
     this.initHandler();
   }
@@ -70,6 +70,14 @@ export class User {
                   ?.map((u) => ({ id: u.id })) ?? [],
             },
           });
+          RoomManager.getInstance().broadcast({
+            type:"user-joined",
+            payload:{
+              userId:this.id,
+              x:this.x,
+              y:this.y
+            }
+          },this,spaceId)
           break;
         case "move":
           const movex = parsedData.x;
