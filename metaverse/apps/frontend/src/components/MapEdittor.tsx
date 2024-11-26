@@ -108,7 +108,6 @@ const MapEditor = ({mapId}:{mapId:string}) => {
     class MapScene extends Phaser.Scene {
       private placedElements: Phaser.GameObjects.Image[] = [];
       private dragPreview: Phaser.GameObjects.Image | null = null;
-      private grid: Phaser.GameObjects.Grid | null = null;
       private cameras: Phaser.Cameras.Scene2D.CameraManager | null = null;
       private player: Phaser.Physics.Arcade.Sprite | null = null;
       private cursors: Phaser.Types.Input.Keyboard.CursorKeys | null = null;
