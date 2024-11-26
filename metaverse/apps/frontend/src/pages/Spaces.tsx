@@ -3,32 +3,10 @@ import SpaceComponent from '../components/space';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import Loader from '../components/Loader';
-
-type Element = {
-    id: string;
-    imageUrl: string;
-    name: string;
-    width: number;
-    height: number;
-    static: boolean;
-}
-
-type Space = {
-    id: string;
-    name: string;
-    thumbnail: string;
-    description: string;
-    capacity: number;
-    width: number;
-    height: number;
-    elements: {
-        id: string;
-        element: Element;
-    }[];
-}
+import { Space, Element } from '../components/space';
 
 const Spaces = () => {
-    const { id } = useParams<{id: string}>();
+    const { id } = useParams<{ id?: string }>();
     const navigate = useNavigate();
     const [space, setSpace] = useState<Space|null>(null);
     const [loading, setLoading] = useState(true);
@@ -44,19 +22,20 @@ const Spaces = () => {
 
     useEffect(() => {
         const fetchSpace = async () => {
-           try {
-            const res = await axios.get(`${BACKEND_URL}/space/${id}`)
-            setSpace(res.data)
-            console.log(res.data.mapId)
-           } catch(err) {
-            console.log(err);
-           }
-        }
-        fetchSpace()
-        Promise.resolve(fetchSpace()).then(() => {
-            setLoading(false)
-        })
-    }, [id, BACKEND_URL])
+            if (!id) return;
+            try {
+                const res = await axios.get(`${BACKEND_URL}/space/${id}`);
+                setSpace(res.data);
+                console.log(res.data.mapId);
+            } catch (err) {
+                console.log(err);
+            }
+        };
+        
+        fetchSpace().finally(() => {
+            setLoading(false);
+        });
+    }, [id, BACKEND_URL]);
 
     if(loading) return <div className='flex justify-center items-center h-screen'><Loader/></div>
 
@@ -70,7 +49,7 @@ const Spaces = () => {
                 </div>
 
                 {/* Chat overlay - now with glass morphism effect */}
-                <div className="absolute top-20 right-4 w-80 h-[calc(100vh-10rem)] bg-white bg-opacity-10 backdrop-filter backdrop-blur-lg text-white rounded-lg shadow-lg flex flex-col overflow-hidden">
+                <div className="absolute top-14 right-0 w-80 h-[calc(100vh-8rem)] bg-gray-800 bg-opacity-90 backdrop-filter backdrop-blur-lg text-white rounded-lg shadow-lg flex flex-col overflow-hidden">
                     <div className="p-4 border-b border-gray-600 flex justify-between items-center">
                         <h2 className="font-semibold text-lg">Chat</h2>
                         <button className="text-gray-400 hover:text-white transition-colors">

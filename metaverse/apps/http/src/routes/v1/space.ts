@@ -254,6 +254,7 @@ spaceRouter.get("/:spaceId", async (req: any, res: any) => {
       });
     }
     return res.status(200).json({
+      id:space.id,
       name:space.name,
       thumbnail:space.thumbnail,    
       description:space.description,
