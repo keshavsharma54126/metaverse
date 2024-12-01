@@ -1,9 +1,16 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import SpaceComponent from '../components/space';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 import Loader from '../components/Loader';
 import { Space, Element } from '../components/space';
+import { GameWebSocket } from '../websocket';
+interface Participant{
+    id:string;
+    name:string;
+    avatar:string;
+    position:{x:number,y:number}
+}
 
 const Spaces = () => {
     const { id } = useParams<{ id?: string }>();
@@ -15,16 +22,17 @@ const Spaces = () => {
     const [isCameraOff, setCameraOff] = useState(false);
     const [isScreenSharing, setScreenSharing] = useState(false);
     const [isChatOpen, setChatOpen] = useState(true);
+    const [isConnected,setIsConnected] = useState(false);
     const [currentUser,setCurrentUser] = useState<any>({})
-    const [participants,setParticipants] = useState<any[]>([]);
-
+    const [participants,setParticipants] = useState<Participant[]>([]);
+    const wsRef = useRef<GameWebSocket|null>(null);
+    const wsUrl = import.meta.env.VITE_WS_URL;
     useEffect(() => {
         const fetchSpace = async () => {
             if (!id) return;
             try {
                 const res = await axios.get(`${BACKEND_URL}/space/${id}`);
                 setSpace(res.data);
-                console.log(res.data.mapId);
             } catch (err) {
                 console.log(err);
             }
@@ -35,6 +43,71 @@ const Spaces = () => {
         });
     }, [id, BACKEND_URL]);
 
+    useEffect(()=>{
+        wsRef.current = new GameWebSocket(wsUrl, true);
+        wsRef.current.setHandlers({
+            onConnect: () => {
+                console.log("connected to ws");
+                setIsConnected(true);
+            },
+            onDisconnect: () => {
+                console.log("disconnected from ws");
+                setIsConnected(false);
+            },
+            onError: (error) => {
+                console.error("WebSocket error:", error);
+                setIsConnected(false);
+            },
+            onSpaceJoined:async(spawn,users,userId)=>{
+                setParticipants(users)
+                setCurrentUser({id:users[0].id,name:users[0].name,avatar:users[0].avatar,position:spawn})
+                //handle current user name and avatar
+                const {name,avatar} = await handleUserUpdata(userId)
+                setCurrentUser({...currentUser,name,avatar})
+            },
+            onUserJoined:async(id,userId,position)=>{
+                const {name,avatar} = await handleUserUpdata(userId)
+                setParticipants((prev)=>[...prev,{id,userId,name,avatar,position}])
+            },
+            onUserLeft:(userId)=>{
+                setParticipants((prev)=>prev.filter((user)=>user.id!==userId))
+            },
+            onPositionUpdate:(userId,position)=>{
+                setParticipants((prev)=>prev.map((user)=>user.id===userId?{...user,position}:user))
+            },
+            onMovementRejected:(userId,x,y)=>{
+                console.log("movement rejected",userId,x,y)
+            }
+
+
+        })
+
+        const token = localStorage.getItem("authToken");
+        if (token && id) {
+            wsRef.current.connect(id, token)
+                .catch((error) => {
+                    console.error("Failed to connect:", error);
+                    setIsConnected(false);
+                });
+        }
+
+        return () => {
+            wsRef.current?.close();
+        };
+    }, [id, wsUrl]);
+
+    const handleUserUpdata = async (userId:string)=>{
+        const token = localStorage.getItem("authToken");
+        const res = await axios.get(`${BACKEND_URL}/user/metadata/${userId}`,{
+            headers:{
+                Authorization: `Bearer ${token}`
+            }
+        })
+        return {name:res.data.user.name,avatar:res.data.user.avatar?.imageUrl}
+    }
+
+
+
     if(loading) return <div className='flex justify-center items-center h-screen'><Loader/></div>
 
     return (
@@ -43,7 +116,7 @@ const Spaces = () => {
             <div className="flex-1 relative">
                 {/* Game Canvas */}
                 <div className="absolute inset-0 overflow-hidden rounded-lg shadow-lg ">
-                    {space && <SpaceComponent space={space}/>}
+                    {space && <SpaceComponent space={space} currentUser={currentUser} participants={participants} wsRef={wsRef}/>}
                 </div>
 
                 {/* Chat overlay - now with glass morphism effect */}

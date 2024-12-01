@@ -31,7 +31,7 @@ export interface Space {
   }[];
 }
 
-const SpaceComponent = ({ space }: { space: Space }) => {
+const SpaceComponent = ({ space,currentUser,participants,wsRef }: { space: Space,currentUser:any,participants:any,wsRef:any }) => {
   console.log(space)
   const phaserRef = useRef<HTMLDivElement>(null);
   const gameRef = useRef<Phaser.Game | null>(null);
@@ -47,7 +47,7 @@ const SpaceComponent = ({ space }: { space: Space }) => {
     elementId: e.element.id,
     element: e.element
   })));
-  const [avatars, setAvatars] = useState<Element[]>([]);
+  const [avatars, setAvatars] = useState<any[]>([]);
   const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
   const [zoom, setZoom] = useState(0);
   const[camera, setCamera] = useState<Phaser.Cameras.Scene2D.Camera>();
@@ -59,13 +59,17 @@ const SpaceComponent = ({ space }: { space: Space }) => {
     const fetchAvatars = async () => {
       try {
         const token = localStorage.getItem("authToken");
-        const res = await axios.get(`${BACKEND_URL}/admin/avatars`, {
+        const res = await axios.get(`${BACKEND_URL}/user/metadata/bulk`, {
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json"
           }
         });
-        setAvatars(res.data.avatars);
+        console.log(res.data)
+          setAvatars(res.data.avatars);
+          console.log("avatars",res.data.avatars)
+
+
       } catch (error) {
         console.error("Failed to fetch avatars:", error);
       }
@@ -78,6 +82,8 @@ const SpaceComponent = ({ space }: { space: Space }) => {
     if (!phaserRef.current) return;
 
     class MapScene extends Phaser.Scene {
+      private players: Map<string, Phaser.GameObjects.Image> = new Map();
+      
       constructor() {
         super({ key: `${space.id}_OfficeScene` });
       }
@@ -105,7 +111,6 @@ const SpaceComponent = ({ space }: { space: Space }) => {
           });
         });
 
-        // Error handling for image loading
         this.load.on('loaderror', (fileObj: any) => {
           console.error('Load Error:', {
             key: fileObj.key,
@@ -160,7 +165,65 @@ const SpaceComponent = ({ space }: { space: Space }) => {
           camera.scrollY += dy;
         });
       
+        // Add current user with null check
+        if (currentUser && currentUser.position) {
+          const player = this.add.image(
+            currentUser.position.x * gridSize, 
+            currentUser.position.y * gridSize, 
+            `avatar_${currentUser.id}` // Changed from player_ to avatar_ to match preload
+          )
+            .setOrigin(0)
+            .setDepth(2)
+            .setDisplaySize(gridSize, gridSize);
+          
+          this.players.set(currentUser.id, player);
+          
+          // Make camera follow current user
+          this.cameras.main.startFollow(player);
+        }
 
+        // Add other participants with null checks
+        participants.forEach((participant:any) => {
+          if (participant.id !== currentUser?.id && participant.position) {
+            const player = this.add.image(
+              participant.position.x * gridSize, 
+              participant.position.y * gridSize, 
+              `avatar_${participant.id}` // Changed from player_ to avatar_ to match preload
+            )
+              .setOrigin(0)
+              .setDepth(2)
+              .setDisplaySize(gridSize, gridSize);
+            
+            this.players.set(participant.id, player);
+          }
+        });
+
+        // Handle websocket events for player movement
+        if (wsRef.current) {
+          wsRef.current.setHandlers({
+            onPositionUpdate: (userId:string, position:any) => {
+              const player = this.players.get(userId);
+              if (player) {
+                player.setPosition(position.x * gridSize, position.y * gridSize);
+              }
+            },
+            onUserJoined: (userId:string, position:any, avatar:string) => {
+              const player = this.add.image(position.x * gridSize, position.y * gridSize, `player_${userId}`)
+                .setOrigin(0)
+                .setDepth(2)
+                .setDisplaySize(gridSize, gridSize);
+              
+              this.players.set(userId, player);
+            },
+            onUserLeft: (userId:string) => {
+              const player = this.players.get(userId);
+              if (player) {
+                player.destroy();
+                this.players.delete(userId);
+              }
+            }
+          });
+        }
       }
     }
 
@@ -184,7 +247,7 @@ const SpaceComponent = ({ space }: { space: Space }) => {
     return () => {
       gameRef.current?.destroy(true);
     };
-  }, [elements, avatars, space.id, space.width, space.height, gridSize]);
+  }, [elements, avatars, space.id, space.width, space.height, gridSize, currentUser, participants, wsRef]);
 
   const handleZoom = (direction: 'in' | 'out') => {
     const scene = gameRef.current?.scene.getScene(`${space.id}_OfficeScene`) as any;

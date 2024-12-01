@@ -35,7 +35,7 @@ export class User {
         case "join":
           const spaceId = parsedData.spaceId;
           const token = parsedData.token;
-          const userId = (jwt.verify(token, JWT_SECRET) as JwtPayload).id;
+          const userId = (jwt.verify(token, JWT_SECRET) as JwtPayload).userId;
           if (!userId) {
             this.ws.close();
             return;
@@ -59,6 +59,7 @@ export class User {
           this.send({
             type: "space-joined",
             payload: {
+              userId:this.userId,
               //chedk the notion doc here we need tos end the spaw points so get back to this later for static objects checking
               spawn: {
                 x: this.y,
@@ -73,7 +74,8 @@ export class User {
           RoomManager.getInstance().broadcast({
             type:"user-joined",
             payload:{
-              userId:this.id,
+              userId:this.userId,
+              id:this.id,
               x:this.x,
               y:this.y
             }
@@ -95,7 +97,8 @@ export class User {
               {
                 type: "movement",
                 payload: {
-                  userId:this.id,
+                  userId:this.userId,
+                  id:this.id,
                   x: this.x,
                   y: this.y,
                 },
@@ -108,7 +111,6 @@ export class User {
           this.send({
             tppe: "movement-rejected",
             payload: {
-              userId:this.id,
               x: this.x,
               y: this.y,
             },
