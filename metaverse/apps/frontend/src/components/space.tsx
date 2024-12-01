@@ -49,7 +49,8 @@ const SpaceComponent = ({ space }: { space: Space }) => {
   })));
   const [avatars, setAvatars] = useState<Element[]>([]);
   const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
-  const [zoom, setZoom] = useState(4);
+  const [zoom, setZoom] = useState(1);
+  const[camera, setCamera] = useState<Phaser.Cameras.Scene2D.Camera>();
   const [gridSize] = useState(32);
 
   // Fetch avatars on component mount
@@ -126,15 +127,14 @@ const SpaceComponent = ({ space }: { space: Space }) => {
           }
         }
 
-        // Place elements on the grid
         elements.forEach(element => {
            this.add.image(element.x, element.y, `element_${element.id}`)
             .setOrigin(0)
             .setDepth(1)
             .setDisplaySize(element.width*gridSize, element.height*gridSize);
         });
-
-        //adding zoom controls to the scene 
+        setCamera(this.cameras.main);
+        camera?.setZoom(Math.max(3*this.scale.width/space.width, 3*this.scale.height/space.height))
       
         this.input.on('wheel', (pointer: any, gameObjects: any, deltaX: number, deltaY: number) => {
           const camera = this.cameras.main;

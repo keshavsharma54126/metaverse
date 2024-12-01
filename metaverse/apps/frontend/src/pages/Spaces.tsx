@@ -14,6 +14,7 @@ const Spaces = () => {
     const [isMuted, setIsMuted] = useState(false);
     const [isCameraOff, setCameraOff] = useState(false);
     const [isScreenSharing, setScreenSharing] = useState(false);
+    const [isChatOpen, setChatOpen] = useState(true);
     const [participants] = useState([
         { id: 1, name: 'User 1', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=1' },
         { id: 2, name: 'User 2', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=2' },
@@ -49,13 +50,22 @@ const Spaces = () => {
                 </div>
 
                 {/* Chat overlay - now with glass morphism effect */}
-                <div className="absolute top-14 right-0 w-80 h-[calc(100vh-8rem)] bg-gray-800 bg-opacity-90 backdrop-filter backdrop-blur-lg text-white rounded-lg shadow-lg flex flex-col overflow-hidden">
+                <div onClick={()=>setChatOpen(true)} className={`absolute top-14 right-0 w-[25rem] ${isChatOpen ? 'h-[calc(100vh-8rem)]' : 'h-[4rem]'} bg-gray-800 bg-opacity-90 backdrop-filter backdrop-blur-lg text-white rounded-lg shadow-lg flex flex-col overflow-hidden`}>
                     <div className="p-4 border-b border-gray-600 flex justify-between items-center">
                         <h2 className="font-semibold text-lg">Chat</h2>
-                        <button className="text-gray-400 hover:text-white transition-colors">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                            </svg>
+                        <button className="text-gray-400 hover:text-white transition-colors" onClick={(e)=>{
+                            e.stopPropagation();
+                            setChatOpen(!isChatOpen)
+                        }}>
+                            {isChatOpen ? (
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            ) : (
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                                </svg>
+                            )}
                         </button>
                     </div>
                     <div className="flex-1 p-4 overflow-y-auto">
