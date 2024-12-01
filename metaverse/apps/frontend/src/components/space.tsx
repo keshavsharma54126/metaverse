@@ -49,7 +49,7 @@ const SpaceComponent = ({ space }: { space: Space }) => {
   })));
   const [avatars, setAvatars] = useState<Element[]>([]);
   const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
-  const [zoom, setZoom] = useState(1);
+  const [zoom, setZoom] = useState(0);
   const[camera, setCamera] = useState<Phaser.Cameras.Scene2D.Camera>();
   const [gridSize] = useState(32);
 
@@ -133,28 +133,34 @@ const SpaceComponent = ({ space }: { space: Space }) => {
             .setDepth(1)
             .setDisplaySize(element.width*gridSize, element.height*gridSize);
         });
-        setCamera(this.cameras.main);
-        camera?.setZoom(Math.max(3*this.scale.width/space.width, 3*this.scale.height/space.height))
-      
+        const camera = this.cameras.main;
+        setCamera(camera);
+        camera?.setZoom(2)
+
         this.input.on('wheel', (pointer: any, gameObjects: any, deltaX: number, deltaY: number) => {
           const camera = this.cameras.main;
           const oldZoom = camera.zoom;
-          const newZoom = Math.min(Math.max(oldZoom - (deltaY * 0.001), 0.5), 4);
+          const newZoom = Math.min(Math.max(oldZoom - (deltaY * 0.001), 0.7), 4);
           
-          // Get pointer position in world coordinates before zoom
-          const worldPoint = {
-            x: (pointer.x / oldZoom) + camera.scrollX,
-            y: (pointer.y / oldZoom) + camera.scrollY
-          };
+          // Get the mouse position in world coordinates before zooming
+          const worldPointBefore = camera.getWorldPoint(pointer.x, pointer.y);
           
+          // Set the new zoom
           camera.setZoom(newZoom);
           
-          // Calculate new camera position to maintain pointer position
-          camera.scrollX = worldPoint.x - (pointer.x / newZoom);
-          camera.scrollY = worldPoint.y - (pointer.y / newZoom);
+          // Get the mouse position in world coordinates after zooming
+          const worldPointAfter = camera.getWorldPoint(pointer.x, pointer.y);
           
-          setZoom(newZoom);
+          // Calculate the difference in world coordinates
+          const dx = worldPointBefore.x - worldPointAfter.x;
+          const dy = worldPointBefore.y - worldPointAfter.y;
+          
+          // Adjust camera position
+          camera.scrollX += dx;
+          camera.scrollY += dy;
         });
+      
+
       }
     }
 
@@ -188,21 +194,10 @@ const SpaceComponent = ({ space }: { space: Space }) => {
     const oldZoom = camera.zoom;
     const newZoom = direction === 'in' 
       ? Math.min(oldZoom + 0.2, 2)
-      : Math.max(oldZoom - 0.2, 0.5);
+      : Math.max(oldZoom - 0.2, 0.7);
     
-    // Get center of viewport in world coordinates before zoom
-    const centerX = camera.midPoint.x;
-    const centerY = camera.midPoint.y;
     
     camera.setZoom(newZoom);
-    
-    // Adjust camera position to keep center point
-    const zoomFactor = newZoom / oldZoom;
-    const dx = centerX * (zoomFactor - 1);
-    const dy = centerY * (zoomFactor - 1);
-    
-    camera.scrollX += dx;
-    camera.scrollY += dy;
     
     setZoom(newZoom);
   };

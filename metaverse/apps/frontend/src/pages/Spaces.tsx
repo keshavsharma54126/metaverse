@@ -15,11 +15,8 @@ const Spaces = () => {
     const [isCameraOff, setCameraOff] = useState(false);
     const [isScreenSharing, setScreenSharing] = useState(false);
     const [isChatOpen, setChatOpen] = useState(true);
-    const [participants] = useState([
-        { id: 1, name: 'User 1', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=1' },
-        { id: 2, name: 'User 2', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=2' },
-        { id: 3, name: 'User 3', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=3' },
-    ]);
+    const [currentUser,setCurrentUser] = useState<any>({})
+    const [participants,setParticipants] = useState<any[]>([]);
 
     useEffect(() => {
         const fetchSpace = async () => {
