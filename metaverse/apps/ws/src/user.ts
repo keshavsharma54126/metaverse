@@ -68,7 +68,7 @@ export class User {
               users:
                 RoomManager.getInstance()
                   .rooms.get(spaceId)
-                  ?.map((u) => ({ id: u.id })) ?? [],
+                  ?.map((u) => ({ id: u.id, })) ?? [],
             },
           });
           RoomManager.getInstance().broadcast({

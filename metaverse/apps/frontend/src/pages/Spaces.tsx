@@ -7,8 +7,10 @@ import { Space, Element } from '../components/space';
 import { GameWebSocket } from '../websocket';
 interface Participant{
     id:string;
+    userId:string;
     name:string;
-    avatar:string;
+    avatarId:string;
+    url:string;
     position:{x:number,y:number}
 }
 
@@ -60,14 +62,15 @@ const Spaces = () => {
             },
             onSpaceJoined:async(spawn,users,userId)=>{
                 setParticipants(users)
-                setCurrentUser({id:users[0].id,name:users[0].name,avatar:users[0].avatar,position:spawn})
-                //handle current user name and avatar
-                const {name,avatar} = await handleUserUpdata(userId)
-                setCurrentUser({...currentUser,name,avatar})
+                setCurrentUser({id:users[0].id})
+                const {name,avatarId,url} = await handleUserUpdata(userId)
+                setCurrentUser((prev:any)=>({...prev,name,avatarId,url,spawn}))
+                console.log("currentUser",currentUser)
             },
             onUserJoined:async(id,userId,position)=>{
-                const {name,avatar} = await handleUserUpdata(userId)
-                setParticipants((prev)=>[...prev,{id,userId,name,avatar,position}])
+                const {name,avatarId,url} = await handleUserUpdata(userId)
+                setParticipants((prev)=>[...prev,{id,userId,name,avatarId,url,position}])
+                console.log("participants",participants)
             },
             onUserLeft:(userId)=>{
                 setParticipants((prev)=>prev.filter((user)=>user.id!==userId))
@@ -103,7 +106,8 @@ const Spaces = () => {
                 Authorization: `Bearer ${token}`
             }
         })
-        return {name:res.data.user.name,avatar:res.data.user.avatar?.imageUrl}
+        console.log("res",res.data)
+        return {name:res.data.user.avatar.username,avatarId:res.data.user.avatar?.id,url:res.data.user.avatar?.imageUrl}
     }
 
 
@@ -213,7 +217,7 @@ const Spaces = () => {
                         {participants.map((participant) => (
                             <img
                                 key={participant.id}
-                                src={participant.avatar}
+                                src={participant.url}
                                 alt={participant.name}
                                 className="inline-block h-10 w-10 rounded-full ring-2 ring-white"
                                 title={participant.name}

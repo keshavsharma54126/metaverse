@@ -55,7 +55,6 @@ const SpaceComponent = ({ space,currentUser,participants,wsRef }: { space: Space
 
   // Fetch avatars on component mount
   useEffect(() => {
-    console.log(elements)
     const fetchAvatars = async () => {
       try {
         const token = localStorage.getItem("authToken");
@@ -79,6 +78,8 @@ const SpaceComponent = ({ space,currentUser,participants,wsRef }: { space: Space
 
   // Initialize Phaser game
   useEffect(() => {
+    console.log("currentUser",currentUser)
+    console.log("participants",participants)
     if (!phaserRef.current) return;
 
     class MapScene extends Phaser.Scene {
@@ -89,26 +90,67 @@ const SpaceComponent = ({ space,currentUser,participants,wsRef }: { space: Space
       }
 
       preload() {
+        const ensureHttps = (url: string) => {
+          if (!url) return '';
+          return url.startsWith('http') ? url : `https://${url}`;
+        };
+
         // Load element images
         elements.forEach(element => {
           const imageKey = `element_${element.id}`;
-          const url = new URL(element.imageUrl);
-          url.searchParams.append('t', Date.now().toString());
-          this.load.image({
-            key: imageKey,
-            url: url.toString(),
-          });
+          if (element.imageUrl) {
+            try {
+              const safeUrl = ensureHttps(element.imageUrl);
+              const url = new URL(safeUrl);
+              url.searchParams.append('t', Date.now().toString());
+              this.load.image({
+                key: imageKey,
+                url: url.toString(),
+              });
+            } catch (error) {
+              // Fallback: try loading the URL directly if URL construction fails
+              this.load.image({
+                key: imageKey,
+                url: element.imageUrl,
+              });
+              console.warn(`Using direct URL for element ${element.id}:`, element.imageUrl);
+            }
+          }
         });
 
-        // Load avatar images
-        avatars.forEach(avatar => {
-          const imageKey = `avatar_${avatar.id}`;
-          const url = new URL(avatar.imageUrl);
-          url.searchParams.append('t', Date.now().toString());
-          this.load.image({
-            key: imageKey,
-            url: url.toString(),
-          });
+        // Load avatar images for current user
+        if (currentUser?.url) {
+          try {
+            const imageKey = `avatar_${currentUser.avatarId}`;
+            console.log("Loading current user avatar with key:", imageKey);
+            const safeUrl = ensureHttps(currentUser.url);
+            const url = new URL(safeUrl);
+            url.searchParams.append('t', Date.now().toString());
+            this.load.image({
+              key: imageKey,
+              url: url.toString(),
+            });
+          } catch (error) {
+            console.warn(`Using direct URL for currentUser ${currentUser.id}:`, currentUser.url);
+          }
+        }
+
+        // Load avatar images for participants
+        participants?.forEach((participant: any) => {
+          if (participant?.url) {
+            try {
+              const imageKey = `avatar_${participant.id}`;
+              const safeUrl = ensureHttps(participant.url);
+              const url = new URL(safeUrl);
+              url.searchParams.append('t', Date.now().toString());
+              this.load.image({
+                key: imageKey,
+                url: url.toString(),
+              });
+            } catch (error) {
+              console.warn(`Using direct URL for participant ${participant.id}:`, participant.url);
+            }
+          }
         });
 
         this.load.on('loaderror', (fileObj: any) => {
@@ -140,6 +182,7 @@ const SpaceComponent = ({ space,currentUser,participants,wsRef }: { space: Space
         });
         const camera = this.cameras.main;
         setCamera(camera);
+        camera.setBounds(0, 0, space.width, space.height);
         camera?.setZoom(2)
 
         this.input.on('wheel', (pointer: any, gameObjects: any, deltaX: number, deltaY: number) => {
@@ -166,37 +209,39 @@ const SpaceComponent = ({ space,currentUser,participants,wsRef }: { space: Space
         });
       
         // Add current user with null check
-        if (currentUser && currentUser.position) {
+        if (currentUser && currentUser.spawn) {
           const player = this.add.image(
-            currentUser.position.x * gridSize, 
-            currentUser.position.y * gridSize, 
-            `avatar_${currentUser.id}` // Changed from player_ to avatar_ to match preload
+            currentUser.spawn.x , 
+            currentUser.spawn.y , 
+            `avatar_${currentUser.avatarId}`
           )
             .setOrigin(0)
-            .setDepth(2)
-            .setDisplaySize(gridSize, gridSize);
+            .setDepth(1)
+            .setDisplaySize(1*gridSize,1*gridSize);
           
           this.players.set(currentUser.id, player);
           
-          // Make camera follow current user
-          this.cameras.main.startFollow(player);
+          // Configure camera follow with lerp for smooth movement
+          camera.startFollow(player, true, 0.09, 0.09);
+          camera.setFollowOffset(-player.width/2, -player.height/2);
         }
 
         // Add other participants with null checks
-        participants.forEach((participant:any) => {
-          if (participant.id !== currentUser?.id && participant.position) {
-            const player = this.add.image(
-              participant.position.x * gridSize, 
-              participant.position.y * gridSize, 
-              `avatar_${participant.id}` // Changed from player_ to avatar_ to match preload
-            )
-              .setOrigin(0)
-              .setDepth(2)
-              .setDisplaySize(gridSize, gridSize);
+        // participants?.forEach((participant:any) => {
+        //   if (participant.id !== currentUser?.id && participant.position) {
+        //     console.log("Loading participant avatar with key:", `avatar_${participant.id}`);
+        //     const player = this.add.image(
+        //       participant.position.x * gridSize, 
+        //       participant.position.y * gridSize, 
+        //       `avatar_${participant.id}`
+        //     )
+        //       .setOrigin(0)
+        //       .setDepth(2)
+        //       .setDisplaySize(gridSize, gridSize);
             
-            this.players.set(participant.id, player);
-          }
-        });
+        //     this.players.set(participant.id, player);
+        //   }
+        // });
 
         // Handle websocket events for player movement
         if (wsRef.current) {
