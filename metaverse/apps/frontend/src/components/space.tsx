@@ -32,7 +32,6 @@ export interface Space {
 }
 
 const SpaceComponent = ({ space,currentUser,participants,wsRef }: { space: Space,currentUser:any,participants:any,wsRef:any }) => {
-  console.log(space)
   const phaserRef = useRef<HTMLDivElement>(null);
   const gameRef = useRef<Phaser.Game | null>(null);
   const [elements, setElements] = useState<Element[]>(space.elements.map((e) => ({
@@ -84,6 +83,9 @@ const SpaceComponent = ({ space,currentUser,participants,wsRef }: { space: Space
 
     class MapScene extends Phaser.Scene {
       private players: Map<string, Phaser.GameObjects.Image> = new Map();
+      private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
+      private currentPosition = {x:currentUser.spawn.x,y:currentUser.spawn.y};
+      private staticObjects!: Phaser.GameObjects.Group;
       
       constructor() {
         super({ key: `${space.id}_OfficeScene` });
@@ -174,74 +176,76 @@ const SpaceComponent = ({ space,currentUser,participants,wsRef }: { space: Space
           }
         }
 
+        // Create a physics group for static objects
+        this.staticObjects = this.add.group();
+
+        // Add elements with physics
         elements.forEach(element => {
-           this.add.image(element.x, element.y, `element_${element.id}`)
+          const elementSprite = this.add.image(element.x, element.y, `element_${element.id}`)
             .setOrigin(0)
             .setDepth(1)
             .setDisplaySize(element.width*gridSize, element.height*gridSize);
+
+          if (element.static) {
+            // Add physics to static elements
+            this.physics.add.existing(elementSprite, true); // true makes it static
+            const physicsBody = (elementSprite.body as Phaser.Physics.Arcade.Body);
+            physicsBody.setSize(element.width*gridSize, element.height*gridSize);
+            this.staticObjects.add(elementSprite);
+          }
         });
+
         const camera = this.cameras.main;
         setCamera(camera);
-        camera.setBounds(0, 0, space.width, space.height);
-        camera?.setZoom(2)
+        camera.removeBounds();
+        camera.setZoom(2);
+        
+        // Set initial camera position to center of the space
+        const centerX = space.width / 2;
+        const centerY = space.height / 2;
+        camera.centerOn(centerX, centerY);
 
+        // Update wheel handler
         this.input.on('wheel', (pointer: any, gameObjects: any, deltaX: number, deltaY: number) => {
           const camera = this.cameras.main;
           const oldZoom = camera.zoom;
-          const newZoom = Math.min(Math.max(oldZoom - (deltaY * 0.001), 0.7), 4);
-          
-          // Get the mouse position in world coordinates before zooming
-          const worldPointBefore = camera.getWorldPoint(pointer.x, pointer.y);
-          
-          // Set the new zoom
+          const newZoom = Phaser.Math.Clamp(oldZoom - (deltaY * 0.001), 0.2, 4);
+
+          // Store current center point
+          const centerX = camera.scrollX + (camera.width / 2 / oldZoom);
+          const centerY = camera.scrollY + (camera.height / 2 / oldZoom);
+
           camera.setZoom(newZoom);
           
-          // Get the mouse position in world coordinates after zooming
-          const worldPointAfter = camera.getWorldPoint(pointer.x, pointer.y);
-          
-          // Calculate the difference in world coordinates
-          const dx = worldPointBefore.x - worldPointAfter.x;
-          const dy = worldPointBefore.y - worldPointAfter.y;
-          
-          // Adjust camera position
-          camera.scrollX += dx;
-          camera.scrollY += dy;
+          // Maintain the same center point after zoom
+          camera.scrollX = centerX - (camera.width / 2 / newZoom);
+          camera.scrollY = centerY - (camera.height / 2 / newZoom);
         });
       
-        // Add current user with null check
+        // Add current user with physics
         if (currentUser && currentUser.spawn) {
           const player = this.add.image(
-            currentUser.spawn.x , 
-            currentUser.spawn.y , 
+            currentUser.spawn.x, 
+            currentUser.spawn.y, 
             `avatar_${currentUser.avatarId}`
           )
             .setOrigin(0)
             .setDepth(1)
             .setDisplaySize(1*gridSize,1*gridSize);
           
+          // Add physics to player
+          this.physics.add.existing(player);
+          const playerBody = (player.body as Phaser.Physics.Arcade.Body);
+          playerBody.setCollideWorldBounds(false);
+          
+          // Add collision between player and static objects
+          this.physics.add.collider(player, this.staticObjects);
+          
           this.players.set(currentUser.id, player);
           
-          // Configure camera follow with lerp for smooth movement
-          camera.startFollow(player, true, 0.09, 0.09);
+          camera.startFollow(player);
           camera.setFollowOffset(-player.width/2, -player.height/2);
         }
-
-        // Add other participants with null checks
-        // participants?.forEach((participant:any) => {
-        //   if (participant.id !== currentUser?.id && participant.position) {
-        //     console.log("Loading participant avatar with key:", `avatar_${participant.id}`);
-        //     const player = this.add.image(
-        //       participant.position.x * gridSize, 
-        //       participant.position.y * gridSize, 
-        //       `avatar_${participant.id}`
-        //     )
-        //       .setOrigin(0)
-        //       .setDepth(2)
-        //       .setDisplaySize(gridSize, gridSize);
-            
-        //     this.players.set(participant.id, player);
-        //   }
-        // });
 
         // Handle websocket events for player movement
         if (wsRef.current) {
@@ -249,13 +253,16 @@ const SpaceComponent = ({ space,currentUser,participants,wsRef }: { space: Space
             onPositionUpdate: (userId:string, position:any) => {
               const player = this.players.get(userId);
               if (player) {
-                player.setPosition(position.x * gridSize, position.y * gridSize);
+                player.setPosition(position.x, position.y );
+                if (userId === currentUser.id) {
+                  camera.startFollow(player, true);
+                }
               }
             },
             onUserJoined: (userId:string, position:any, avatar:string) => {
-              const player = this.add.image(position.x * gridSize, position.y * gridSize, `player_${userId}`)
+              const player = this.add.image(position.x , position.y, `player_${userId}`)
                 .setOrigin(0)
-                .setDepth(2)
+                .setDepth(1)
                 .setDisplaySize(gridSize, gridSize);
               
               this.players.set(userId, player);
@@ -269,6 +276,107 @@ const SpaceComponent = ({ space,currentUser,participants,wsRef }: { space: Space
             }
           });
         }
+
+        // Add cursor keys
+        this.cursors = this.input.keyboard!.createCursorKeys();
+
+        // Track active movement keys
+        let activeKey: string | null = null;
+
+        // Update keyboard handler to prevent diagonal movement
+        this.input.keyboard!.on('keydown', (event: KeyboardEvent) => {
+          if (!currentUser || !currentUser.spawn) return;
+
+          const player = this.players.get(currentUser.id);
+          if (!player) return;
+
+          const playerBody = (player.body as Phaser.Physics.Arcade.Body);
+          const moveSpeed = gridSize;
+
+          // Only process new key if no key is active or if it's a different key
+          if (!activeKey || activeKey !== event.key.toLowerCase()) {
+            let newX = this.currentPosition.x;
+            let newY = this.currentPosition.y;
+
+            // Stop any existing movement
+            playerBody.setVelocity(0, 0);
+
+            switch (event.key.toLowerCase()) {
+              case 'arrowup':
+              case 'w':
+                newY -= 1;
+                playerBody.setVelocityY(-moveSpeed);
+                activeKey = event.key.toLowerCase();
+                break;
+              case 'arrowdown':
+              case 's':
+                newY += 1;
+                playerBody.setVelocityY(moveSpeed);
+                activeKey = event.key.toLowerCase();
+                break;
+              case 'arrowleft':
+              case 'a':
+                newX -= 1;
+                playerBody.setVelocityX(-moveSpeed);
+                activeKey = event.key.toLowerCase();
+                break;
+              case 'arrowright':
+              case 'd':
+                newX += 1;
+                playerBody.setVelocityX(moveSpeed);
+                activeKey = event.key.toLowerCase();
+                break;
+            }
+
+            if (newX !== this.currentPosition.x || newY !== this.currentPosition.y) {
+              wsRef.current?.send({
+                type: 'move',
+                x: newX,
+                y: newY
+              });
+
+              this.currentPosition = { x: newX, y: newY };
+            }
+          }
+        });
+
+        // Update keyup handler to clear active key
+        this.input.keyboard!.on('keyup', (event: KeyboardEvent) => {
+          const player = this.players.get(currentUser.id);
+          if (!player) return;
+
+          const playerBody = (player.body as Phaser.Physics.Arcade.Body);
+          
+          // Only clear velocity if the released key was the active key
+          if (activeKey === event.key.toLowerCase()) {
+            switch (event.key.toLowerCase()) {
+              case 'arrowup':
+              case 'w':
+              case 'arrowdown':
+              case 's':
+                playerBody.setVelocityY(0);
+                break;
+              case 'arrowleft':
+              case 'a':
+              case 'arrowright':
+              case 'd':
+                playerBody.setVelocityX(0);
+                break;
+            }
+            activeKey = null;
+          }
+        });
+      }
+
+      // Add update method for continuous physics
+      update() {
+        // Update player positions based on physics
+        this.players.forEach((player) => {
+          const playerBody = (player.body as Phaser.Physics.Arcade.Body);
+          if (playerBody) {
+            playerBody.velocity.normalize().scale(gridSize);
+          }
+        });
       }
     }
 
@@ -301,10 +409,15 @@ const SpaceComponent = ({ space,currentUser,participants,wsRef }: { space: Space
     const camera = scene.cameras.main;
     const oldZoom = camera.zoom;
     const newZoom = direction === 'in' 
-      ? Math.min(oldZoom + 0.2, 2)
-      : Math.max(oldZoom - 0.2, 0.7);
-    
-    
+      ? Math.min(oldZoom + 0.2, 4)
+      : Math.max(oldZoom - 0.2, 0.2);
+
+    // Get the center point of the camera view
+    const centerX = space.width / 2;
+    const centerY = space.height / 2;
+
+    // Set camera to center point before zooming
+    camera.centerOn(centerX, centerY);
     camera.setZoom(newZoom);
     
     setZoom(newZoom);
