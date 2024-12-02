@@ -22,8 +22,8 @@ export class User {
 
   constructor(ws: WebSocket) {
     this.id = getRandomId();
-    this.x = 100;
-    this.y = 100;
+    this.x=0 ;
+    this.y=0 ;
     this.ws = ws;
     this.initHandler();
   }
@@ -62,8 +62,8 @@ export class User {
               userId:this.userId,
               //chedk the notion doc here we need tos end the spaw points so get back to this later for static objects checking
               spawn: {
-                x: this.y,
-                y: this.x,
+                x: this.x,
+                y: this.y,
               },
               users:
                 RoomManager.getInstance()
@@ -86,19 +86,25 @@ export class User {
           const movey = parsedData.y;
           const xdisplacement = Math.abs(this.x - movex);
           const ydisplacement = Math.abs(this.y - movey);
-          if (
-            (xdisplacement === 1 && ydisplacement == 0) ||
-            (xdisplacement == 0 && ydisplacement === 1)
-          ) {
+          
+          console.log('Movement request:', {
+            current: { x: this.x, y: this.y },
+            requested: { x: movex, y: movey },
+            displacement: { x: xdisplacement, y: ydisplacement }
+          });
+
+      
             this.x = movex;
             this.y = movey;
+
+            console.log('Movement accepted, new position:', { x: this.x, y: this.y });
 
             RoomManager.getInstance().broadcast(
               {
                 type: "movement",
                 payload: {
-                  userId:this.userId,
-                  id:this.id,
+                  userId: this.userId,
+                  id: this.id,
                   x: this.x,
                   y: this.y,
                 },
@@ -106,15 +112,11 @@ export class User {
               this,
               this.spaceId!
             );
+        
             return;
-          }
-          this.send({
-            tppe: "movement-rejected",
-            payload: {
-              x: this.x,
-              y: this.y,
-            },
-          });
+          
+          
+         
       }
     });
   }

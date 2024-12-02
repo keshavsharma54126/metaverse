@@ -50,7 +50,7 @@ const SpaceComponent = ({ space,currentUser,participants,wsRef }: { space: Space
   const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
   const [zoom, setZoom] = useState(0);
   const[camera, setCamera] = useState<Phaser.Cameras.Scene2D.Camera>();
-  const [gridSize] = useState(32);
+  const [gridSize] = useState(16);
 
   // Fetch avatars on component mount
   useEffect(() => {
@@ -84,7 +84,7 @@ const SpaceComponent = ({ space,currentUser,participants,wsRef }: { space: Space
     class MapScene extends Phaser.Scene {
       private players: Map<string, Phaser.GameObjects.Image> = new Map();
       private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
-      private currentPosition = {x:currentUser.spawn.x,y:currentUser.spawn.y};
+      private currentPosition: { x: number; y: number };
       private staticObjects!: Phaser.GameObjects.Group;
       
       constructor() {
@@ -197,7 +197,7 @@ const SpaceComponent = ({ space,currentUser,participants,wsRef }: { space: Space
 
         const camera = this.cameras.main;
         setCamera(camera);
-        camera.removeBounds();
+        camera.removeBounds()
         camera.setZoom(2);
         
         // Set initial camera position to center of the space
@@ -209,7 +209,7 @@ const SpaceComponent = ({ space,currentUser,participants,wsRef }: { space: Space
         this.input.on('wheel', (pointer: any, gameObjects: any, deltaX: number, deltaY: number) => {
           const camera = this.cameras.main;
           const oldZoom = camera.zoom;
-          const newZoom = Phaser.Math.Clamp(oldZoom - (deltaY * 0.001), 0.2, 4);
+          const newZoom = Phaser.Math.Clamp(oldZoom - (deltaY * 0.001), 1, 4);
 
           // Store current center point
           const centerX = camera.scrollX + (camera.width / 2 / oldZoom);
@@ -250,8 +250,8 @@ const SpaceComponent = ({ space,currentUser,participants,wsRef }: { space: Space
         // Handle websocket events for player movement
         if (wsRef.current) {
           wsRef.current.setHandlers({
-            onPositionUpdate: (userId:string, position:any) => {
-              const player = this.players.get(userId);
+            onPositionUpdate: (userId:string, position:{x:number,y:number},id:string) => {
+              const player = this.players.get(id);
               if (player) {
                 player.setPosition(position.x, position.y );
                 if (userId === currentUser.id) {
@@ -259,111 +259,110 @@ const SpaceComponent = ({ space,currentUser,participants,wsRef }: { space: Space
                 }
               }
             },
-            onUserJoined: (userId:string, position:any, avatar:string) => {
+            onUserJoined: (userId:string, position:{x:number,y:number}, id:string ) => {
               const player = this.add.image(position.x , position.y, `player_${userId}`)
                 .setOrigin(0)
                 .setDepth(1)
                 .setDisplaySize(gridSize, gridSize);
               
-              this.players.set(userId, player);
+              this.players.set(id, player);
             },
-            onUserLeft: (userId:string) => {
-              const player = this.players.get(userId);
+            onUserLeft: (userId:string,id:string) => {
+              const player = this.players.get(id);
               if (player) {
                 player.destroy();
                 this.players.delete(userId);
+              }
+            },
+            onMovementRejected: (userId:string, x:number, y:number) => {
+              console.log('Movement rejected, resetting to:', { x, y });
+              if (userId === currentUser.id) {
+                this.currentPosition = { x, y };
+                const player = this.players.get(userId);
+                if (player) {
+                  player.setPosition(x * gridSize, y * gridSize);
+                }
               }
             }
           });
         }
 
-        // Add cursor keys
         this.cursors = this.input.keyboard!.createCursorKeys();
+        
+        // Track last move time to control movement rate
+        let lastMoveTime = 0;
+        const moveDelay = 150; // Adjust this value to control movement speed (milliseconds)
 
-        // Track active movement keys
-        let activeKey: string | null = null;
+        // Initialize position from spawn point
+        if (currentUser && currentUser.spawn) {
+          this.currentPosition = {
+            x: currentUser.spawn.x,
+            y: currentUser.spawn.y
+          };
+        }
 
-        // Update keyboard handler to prevent diagonal movement
-        this.input.keyboard!.on('keydown', (event: KeyboardEvent) => {
+        // Add update method to handle continuous movement
+        this.events.on('update', () => {
           if (!currentUser || !currentUser.spawn) return;
 
           const player = this.players.get(currentUser.id);
           if (!player) return;
 
-          const playerBody = (player.body as Phaser.Physics.Arcade.Body);
-          const moveSpeed = gridSize;
+          const currentTime = Date.now();
+          if (currentTime - lastMoveTime < moveDelay) return;
 
-          // Only process new key if no key is active or if it's a different key
-          if (!activeKey || activeKey !== event.key.toLowerCase()) {
-            let newX = this.currentPosition.x;
-            let newY = this.currentPosition.y;
+          const currentX = Math.round(player.x);
+          const currentY = Math.round(player.y);
+          let newX = currentX;
+          let newY = currentY;
+          let shouldMove = false;
 
-            // Stop any existing movement
-            playerBody.setVelocity(0, 0);
+          // Check current state of movement keys
+          if (this.cursors.up.isDown || this.input.keyboard!.addKey('W').isDown) {
+            newY = currentY - 1; // Add gridSize to move by one grid cell
+            shouldMove = true;
+          } else if (this.cursors.down.isDown || this.input.keyboard!.addKey('S').isDown) {
+            newY = currentY + 1;
+            shouldMove = true;
+          }
 
-            switch (event.key.toLowerCase()) {
-              case 'arrowup':
-              case 'w':
-                newY -= 1;
-                playerBody.setVelocityY(-moveSpeed);
-                activeKey = event.key.toLowerCase();
-                break;
-              case 'arrowdown':
-              case 's':
-                newY += 1;
-                playerBody.setVelocityY(moveSpeed);
-                activeKey = event.key.toLowerCase();
-                break;
-              case 'arrowleft':
-              case 'a':
-                newX -= 1;
-                playerBody.setVelocityX(-moveSpeed);
-                activeKey = event.key.toLowerCase();
-                break;
-              case 'arrowright':
-              case 'd':
-                newX += 1;
-                playerBody.setVelocityX(moveSpeed);
-                activeKey = event.key.toLowerCase();
-                break;
-            }
+          if (this.cursors.left.isDown || this.input.keyboard!.addKey('A').isDown) {
+            newX = currentX - 1;
+            shouldMove = true;
+          } else if (this.cursors.right.isDown || this.input.keyboard!.addKey('D').isDown) {
+            newX = currentX + 1;
+            shouldMove = true;
+          }
 
-            if (newX !== this.currentPosition.x || newY !== this.currentPosition.y) {
-              wsRef.current?.send({
-                type: 'move',
-                x: newX,
-                y: newY
-              });
-
-              this.currentPosition = { x: newX, y: newY };
-            }
+          // Only send if we should move and position actually changed
+          if (shouldMove && (newX !== currentX || newY !== currentY)) {
+            // Update the player's position locally
+            player.setPosition(newX, newY);
+            
+            // Send the new position to the server
+            wsRef.current?.send({
+              type: 'move',
+              x: newX,
+              y: newY
+            });
+            
+            this.currentPosition = { x: newX, y: newY };
+            lastMoveTime = currentTime;
           }
         });
 
-        // Update keyup handler to clear active key
+        // Simplified keyup handler (just for physics)
         this.input.keyboard!.on('keyup', (event: KeyboardEvent) => {
           const player = this.players.get(currentUser.id);
           if (!player) return;
 
           const playerBody = (player.body as Phaser.Physics.Arcade.Body);
           
-          // Only clear velocity if the released key was the active key
-          if (activeKey === event.key.toLowerCase()) {
-            switch (event.key.toLowerCase()) {
-              case 'arrowup':
-              case 'w':
-              case 'arrowdown':
-              case 's':
-                playerBody.setVelocityY(0);
-                break;
-              case 'arrowleft':
-              case 'a':
-              case 'arrowright':
-              case 'd':
-                playerBody.setVelocityX(0);
-                break;
-            }
-            activeKey = null;
+          if (['arrowup', 'w', 'arrowdown', 's'].includes(event.key.toLowerCase())) {
+            playerBody.setVelocityY(0);
+          }
+          if (['arrowleft', 'a', 'arrowright', 'd'].includes(event.key.toLowerCase())) {
+            playerBody.setVelocityX(0);
           }
         });
       }

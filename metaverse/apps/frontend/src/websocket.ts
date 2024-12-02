@@ -4,7 +4,7 @@ type WebSocketHandlers = {
     onSpaceJoined?: (spawn: { x: number; y: number }, users: any[],userId:string) => void;
     onUserJoined?: (userId: string,id:string, position: { x: number; y: number }) => void;
     onUserLeft?: (userId: string) => void;
-    onPositionUpdate?: (userId: string, position: { x: number; y: number }) => void;
+    onPositionUpdate?: (userId: string, id:string, position: { x: number; y: number }) => void;
     onMovementRejected?: (userId: string, x: number, y: number) => void;
     onEmote?: (userId: string, emote: string) => void;
     onError?: (error: any) => void;
@@ -143,8 +143,10 @@ export class GameWebSocket {
                 break;
 
             case "movement":
+                console.log("received movement update",parsedData.payload)
                 this.handlers.onPositionUpdate?.(
                     parsedData.payload.userId,
+                    parsedData.payload.id,
                     {
                         x:parsedData.payload.x,
                         y:parsedData.payload.y

@@ -75,8 +75,13 @@ const Spaces = () => {
             onUserLeft:(userId)=>{
                 setParticipants((prev)=>prev.filter((user)=>user.id!==userId))
             },
-            onPositionUpdate:(userId,position)=>{
-                setParticipants((prev)=>prev.map((user)=>user.id===userId?{...user,position}:user))
+            onPositionUpdate:(userId:string, id:string, position:{x:number, y:number})=>{
+                console.log("position update",userId,id,position)
+                setParticipants((prev)=>prev.map((user)=>user.id===id?{
+                    ...user,
+                    userId,
+                    position
+                }:user))
             },
             onMovementRejected:(userId,x,y)=>{
                 console.log("movement rejected",userId,x,y)
