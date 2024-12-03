@@ -5,6 +5,7 @@ import axios from 'axios';
 import Loader from '../components/Loader';
 import { Space, Element } from '../components/space';
 import { GameWebSocket } from '../websocket';
+
 interface Participant{
     id:string;
     userId:string;
@@ -64,23 +65,51 @@ const Spaces = () => {
                 setParticipants(users)
                 setCurrentUser({id:users[0].id})
                 const {name,avatarId,url} = await handleUserUpdata(userId)
-                setCurrentUser((prev:any)=>({...prev,name,avatarId,url,spawn}))
+                setCurrentUser((prev:any) => {
+                    const updated = {...prev, name, avatarId, url, spawn:{x:spawn.x,y:spawn.y}};
+                    console.log("currentUser updated to:", updated);
+                    return updated;
+                })
                 console.log("currentUser",currentUser)
             },
-            onUserJoined:async(id,userId,position)=>{
-                const {name,avatarId,url} = await handleUserUpdata(userId)
-                setParticipants((prev)=>[...prev,{id,userId,name,avatarId,url,position}])
-                console.log("participants",participants)
+            onUserJoined:async(userId,id,x,y)=>{
+                console.log("=== User Joined Event ===")
+                console.log("Initial params:", {userId,id,x,y})
+                try{
+                    const {name,avatarId,url} = await handleUserUpdata(userId)
+                    console.log("User metadata:", {name,avatarId,url})
+                    
+                    const newParticipant = {
+                        id,
+                        userId,
+                        name,
+                        avatarId,
+                        url,
+                        position: {x,y}
+                    }
+                    console.log("New participant object:", newParticipant)
+                    
+                    setParticipants((prev)=>{
+                        console.log("Previous participants:", prev)
+                        const updated = [...prev, newParticipant]
+                        console.log("Updated participants:", updated)
+                        return updated
+                    })
+                    
+                }catch(err){
+                    console.error("Error in user joined:", err)
+                }
             },
             onUserLeft:(userId)=>{
                 setParticipants((prev)=>prev.filter((user)=>user.id!==userId))
             },
-            onPositionUpdate:(userId:string, id:string, position:{x:number, y:number})=>{
-                console.log("position update",userId,id,position)
+            onPositionUpdate:(userId:string, id:string,x:number, y:number)=>{
+                console.log("position update",userId,id,x,y)
                 setParticipants((prev)=>prev.map((user)=>user.id===id?{
                     ...user,
                     userId,
-                    position
+                    x,
+                    y
                 }:user))
             },
             onMovementRejected:(userId,x,y)=>{

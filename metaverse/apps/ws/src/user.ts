@@ -112,6 +112,7 @@ export class User {
               this,
               this.spaceId!
             );
+            console.log("Movement broadcasted")
         
             return;
           

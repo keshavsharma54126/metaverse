@@ -2,9 +2,9 @@ type WebSocketHandlers = {
     onConnect?: () => void;
     onDisconnect?: () => void;
     onSpaceJoined?: (spawn: { x: number; y: number }, users: any[],userId:string) => void;
-    onUserJoined?: (userId: string,id:string, position: { x: number; y: number }) => void;
+    onUserJoined?: (userId: string,id:string, x: number,y: number ) => void;
     onUserLeft?: (userId: string) => void;
-    onPositionUpdate?: (userId: string, id:string, position: { x: number; y: number }) => void;
+    onPositionUpdate?: (userId: string, id:string, x: number, y: number ) => void;
     onMovementRejected?: (userId: string, x: number, y: number) => void;
     onEmote?: (userId: string, emote: string) => void;
     onError?: (error: any) => void;
@@ -66,6 +66,7 @@ export class GameWebSocket {
                     try {
                         const data = JSON.parse(event.data);
                         this.log("Received message:", data);
+
                         this.handleMessage(event);
                     } catch (error) {
                         this.log("Error parsing message:", error);
@@ -115,6 +116,7 @@ export class GameWebSocket {
     private handleMessage = (message:any)=>{
        try{
         const parsedData = JSON.parse(message.data)
+        console.log("parsedData",parsedData)
         this.log(parsedData)
         switch(parsedData.type){
             case "space-joined":
@@ -129,10 +131,8 @@ export class GameWebSocket {
                 this.handlers.onUserJoined?.(
                     parsedData.payload.userId,
                     parsedData.payload.id,
-                    {
-                        x:parsedData.payload.x,
-                        y:parsedData.payload.y
-                    }
+                    parsedData.payload.x,
+                    parsedData.payload.y
                 )
                 break;
             
@@ -146,11 +146,9 @@ export class GameWebSocket {
                 console.log("received movement update",parsedData.payload)
                 this.handlers.onPositionUpdate?.(
                     parsedData.payload.userId,
-                    parsedData.payload.id,
-                    {
-                        x:parsedData.payload.x,
-                        y:parsedData.payload.y
-                    }
+                    parsedData.payload.id, 
+                    parsedData.payload.x,
+                    parsedData.payload.y
 
                 )
                 break;

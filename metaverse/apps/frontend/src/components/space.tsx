@@ -32,6 +32,8 @@ export interface Space {
 }
 
 const SpaceComponent = ({ space,currentUser,participants,wsRef }: { space: Space,currentUser:any,participants:any,wsRef:any }) => {
+  console.log("currentUser",currentUser)
+  console.log("participants",participants)
   const phaserRef = useRef<HTMLDivElement>(null);
   const gameRef = useRef<Phaser.Game | null>(null);
   const [elements, setElements] = useState<Element[]>(space.elements.map((e) => ({
@@ -78,7 +80,7 @@ const SpaceComponent = ({ space,currentUser,participants,wsRef }: { space: Space
   // Initialize Phaser game
   useEffect(() => {
     console.log("currentUser",currentUser)
-    console.log("participants",participants)
+    console.log("participants in space",participants)
     if (!phaserRef.current) return;
 
     class MapScene extends Phaser.Scene {
@@ -222,7 +224,7 @@ const SpaceComponent = ({ space,currentUser,participants,wsRef }: { space: Space
           camera.scrollY = centerY - (camera.height / 2 / newZoom);
         });
       
-        // Add current user with physics
+        // Current player setup
         if (currentUser && currentUser.spawn) {
           const player = this.add.image(
             currentUser.spawn.x, 
@@ -232,14 +234,8 @@ const SpaceComponent = ({ space,currentUser,participants,wsRef }: { space: Space
             .setOrigin(0)
             .setDepth(1)
             .setDisplaySize(1*gridSize,1*gridSize);
-          
-          // Add physics to player
-          this.physics.add.existing(player);
-          const playerBody = (player.body as Phaser.Physics.Arcade.Body);
-          playerBody.setCollideWorldBounds(false);
-          
-          // Add collision between player and static objects
-          this.physics.add.collider(player, this.staticObjects);
+
+          console.log("player position in space",player.x,player.y)
           
           this.players.set(currentUser.id, player);
           
@@ -247,25 +243,26 @@ const SpaceComponent = ({ space,currentUser,participants,wsRef }: { space: Space
           camera.setFollowOffset(-player.width/2, -player.height/2);
         }
 
+        participants.forEach((participant:any)=>{
+          const player = this.add.image(participant.x, participant.y, `avatar_${participant.avatarId}`)
+            .setOrigin(0)
+            .setDepth(1)
+            .setDisplaySize(1*gridSize,1*gridSize);
+
+          this.players.set(participant.id, player);
+        });
+
         // Handle websocket events for player movement
         if (wsRef.current) {
           wsRef.current.setHandlers({
-            onPositionUpdate: (userId:string, position:{x:number,y:number},id:string) => {
+            onPositionUpdate: (userId:string,id:string,x:number,y:number) => {
               const player = this.players.get(id);
               if (player) {
-                player.setPosition(position.x, position.y );
+                player.setPosition(x,y );
                 if (userId === currentUser.id) {
                   camera.startFollow(player, true);
                 }
               }
-            },
-            onUserJoined: (userId:string, position:{x:number,y:number}, id:string ) => {
-              const player = this.add.image(position.x , position.y, `player_${userId}`)
-                .setOrigin(0)
-                .setDepth(1)
-                .setDisplaySize(gridSize, gridSize);
-              
-              this.players.set(id, player);
             },
             onUserLeft: (userId:string,id:string) => {
               const player = this.players.get(id);
@@ -308,75 +305,58 @@ const SpaceComponent = ({ space,currentUser,participants,wsRef }: { space: Space
           const player = this.players.get(currentUser.id);
           if (!player) return;
 
+          // Ensure the player's position is initialized correctly
+          if (!this.currentPosition) {
+            this.currentPosition = { x: player.x, y: player.y };
+          }
+
           const currentTime = Date.now();
           if (currentTime - lastMoveTime < moveDelay) return;
 
-          const currentX = Math.round(player.x);
-          const currentY = Math.round(player.y);
+          const currentX = Math.round(this.currentPosition.x);
+          const currentY = Math.round(this.currentPosition.y);
+
           let newX = currentX;
           let newY = currentY;
           let shouldMove = false;
 
           // Check current state of movement keys
           if (this.cursors.up.isDown || this.input.keyboard!.addKey('W').isDown) {
-            newY = currentY - 1; // Add gridSize to move by one grid cell
+            newY = currentY - gridSize; // Move by gridSize
             shouldMove = true;
           } else if (this.cursors.down.isDown || this.input.keyboard!.addKey('S').isDown) {
-            newY = currentY + 1;
+            newY = currentY + gridSize;
             shouldMove = true;
           }
 
           if (this.cursors.left.isDown || this.input.keyboard!.addKey('A').isDown) {
-            newX = currentX - 1;
+            newX = currentX - gridSize;
             shouldMove = true;
           } else if (this.cursors.right.isDown || this.input.keyboard!.addKey('D').isDown) {
-            newX = currentX + 1;
+            newX = currentX + gridSize;
             shouldMove = true;
           }
 
-          // Only send if we should move and position actually changed
+          // Only update the image position if it should move and position actually changed
           if (shouldMove && (newX !== currentX || newY !== currentY)) {
-            // Update the player's position locally
+            // Update the player's image position directly
             player.setPosition(newX, newY);
-            
+
             // Send the new position to the server
             wsRef.current?.send({
               type: 'move',
               x: newX,
               y: newY
             });
-            
+
             this.currentPosition = { x: newX, y: newY };
             lastMoveTime = currentTime;
-          }
-        });
-
-        // Simplified keyup handler (just for physics)
-        this.input.keyboard!.on('keyup', (event: KeyboardEvent) => {
-          const player = this.players.get(currentUser.id);
-          if (!player) return;
-
-          const playerBody = (player.body as Phaser.Physics.Arcade.Body);
-          
-          if (['arrowup', 'w', 'arrowdown', 's'].includes(event.key.toLowerCase())) {
-            playerBody.setVelocityY(0);
-          }
-          if (['arrowleft', 'a', 'arrowright', 'd'].includes(event.key.toLowerCase())) {
-            playerBody.setVelocityX(0);
           }
         });
       }
 
       // Add update method for continuous physics
-      update() {
-        // Update player positions based on physics
-        this.players.forEach((player) => {
-          const playerBody = (player.body as Phaser.Physics.Arcade.Body);
-          if (playerBody) {
-            playerBody.velocity.normalize().scale(gridSize);
-          }
-        });
-      }
+  
     }
 
     const config: Phaser.Types.Core.GameConfig = {
