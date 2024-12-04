@@ -119,6 +119,7 @@ const Dashboard = () => {
                   }
                 );
                 setAvatar(avatar);
+                window.location.reload()
               }}
               className="bg-gray-800 rounded-xl p-4 flex flex-col items-center hover:bg-gray-700 transition-colors cursor-pointer border-2 border-transparent hover:border-violet-500"
             >

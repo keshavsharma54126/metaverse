@@ -61,16 +61,29 @@ const Spaces = () => {
                 console.error("WebSocket error:", error);
                 setIsConnected(false);
             },
-            onSpaceJoined:async(spawn,users,userId)=>{
-                setParticipants(users)
-                setCurrentUser({id:users[0].id})
-                const {name,avatarId,url} = await handleUserUpdata(userId)
-                setCurrentUser((prev:any) => {
-                    const updated = {...prev, name, avatarId, url, spawn:{x:spawn.x,y:spawn.y}};
-                    console.log("currentUser updated to:", updated);
-                    return updated;
-                })
-                console.log("currentUser",currentUser)
+            onSpaceJoined: async (spawn, users, userId) => {
+                const updatedUsers = await Promise.all(users.map(async (user) => {
+                    const { name, avatarId, url } = await handleUserUpdata(user.userId);
+                    return {
+                        id: user.id,
+                        userId: user.userId,
+                        name,
+                        avatarId,
+                        url,
+                        position: user.position
+                    };
+                }));
+                
+                setParticipants(updatedUsers);
+                setCurrentUser({id: users[0].id});
+                const {name, avatarId, url} = await handleUserUpdata(userId);
+                setCurrentUser((prev:any) => ({
+                    ...prev,
+                    name,
+                    avatarId,
+                    url,
+                    spawn: {x: spawn.x, y: spawn.y}
+                }));
             },
             onUserJoined:async(userId,id,x,y)=>{
                 console.log("=== User Joined Event ===")

@@ -86,7 +86,6 @@ const SpaceComponent = ({ space,currentUser,participants,wsRef }: { space: Space
     class MapScene extends Phaser.Scene {
       private players: Map<string, Phaser.GameObjects.Image> = new Map();
       private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
-      private currentPosition: { x: number; y: number };
       private staticObjects!: Phaser.GameObjects.Group;
       
       constructor() {
@@ -128,6 +127,7 @@ const SpaceComponent = ({ space,currentUser,participants,wsRef }: { space: Space
             const imageKey = `avatar_${currentUser.avatarId}`;
             console.log("Loading current user avatar with key:", imageKey);
             const safeUrl = ensureHttps(currentUser.url);
+            console.log("current user Safe URL:", safeUrl);
             const url = new URL(safeUrl);
             url.searchParams.append('t', Date.now().toString());
             this.load.image({
@@ -143,8 +143,10 @@ const SpaceComponent = ({ space,currentUser,participants,wsRef }: { space: Space
         participants?.forEach((participant: any) => {
           if (participant?.url) {
             try {
-              const imageKey = `avatar_${participant.id}`;
+              const imageKey = `avatar_${participant.avatarId}`;
+              console.log("loading participant avatar with key:", imageKey)
               const safeUrl = ensureHttps(participant.url);
+              console.log("Safe URL:", safeUrl);
               const url = new URL(safeUrl);
               url.searchParams.append('t', Date.now().toString());
               this.load.image({
@@ -224,32 +226,38 @@ const SpaceComponent = ({ space,currentUser,participants,wsRef }: { space: Space
           camera.scrollY = centerY - (camera.height / 2 / newZoom);
         });
       
-        // Current player setup
+        // Initialize player with physics
+        let player: Phaser.Types.Physics.Arcade.ImageWithDynamicBody | undefined;
         if (currentUser && currentUser.spawn) {
-          const player = this.add.image(
+          player = this.physics.add.image(
             currentUser.spawn.x, 
             currentUser.spawn.y, 
             `avatar_${currentUser.avatarId}`
           )
             .setOrigin(0)
             .setDepth(1)
-            .setDisplaySize(1*gridSize,1*gridSize);
+            .setDisplaySize(1 * gridSize, 1 * gridSize);
 
-          console.log("player position in space",player.x,player.y)
-          
+          player.setCollideWorldBounds(true);
+          this.physics.add.collider(player, this.staticObjects);
+
           this.players.set(currentUser.id, player);
-          
-          camera.startFollow(player);
-          camera.setFollowOffset(-player.width/2, -player.height/2);
+          camera.startFollow(player, true, 0.1, 0.1);
+          camera.setFollowOffset(-player.width / 2, -player.height / 2);
         }
 
-        participants.forEach((participant:any)=>{
-          const player = this.add.image(participant.x, participant.y, `avatar_${participant.avatarId}`)
+        // Initialize other participants with their direct x,y coordinates
+        participants.forEach((participant: any) => {
+          const participantSprite = this.add.image(
+            participant.x, 
+            participant.y, 
+            `avatar_${participant.avatarId}`
+          )
             .setOrigin(0)
             .setDepth(1)
-            .setDisplaySize(1*gridSize,1*gridSize);
+            .setDisplaySize(1 * gridSize, 1 * gridSize);
 
-          this.players.set(participant.id, player);
+          this.players.set(participant.id, participantSprite);
         });
 
         // Handle websocket events for player movement
@@ -300,57 +308,62 @@ const SpaceComponent = ({ space,currentUser,participants,wsRef }: { space: Space
 
         // Add update method to handle continuous movement
         this.events.on('update', () => {
-          if (!currentUser || !currentUser.spawn) return;
-
-          const player = this.players.get(currentUser.id);
           if (!player) return;
-
-          // Ensure the player's position is initialized correctly
-          if (!this.currentPosition) {
-            this.currentPosition = { x: player.x, y: player.y };
-          }
 
           const currentTime = Date.now();
           if (currentTime - lastMoveTime < moveDelay) return;
 
-          const currentX = Math.round(this.currentPosition.x);
-          const currentY = Math.round(this.currentPosition.y);
+          // Reset velocity at the start of each update
+          player.setVelocity(0);
 
-          let newX = currentX;
-          let newY = currentY;
+          let newX = player.x;
+          let newY = player.y;
           let shouldMove = false;
 
-          // Check current state of movement keys
+          // Check current state of movement keys and update position
           if (this.cursors.up.isDown || this.input.keyboard!.addKey('W').isDown) {
-            newY = currentY - gridSize; // Move by gridSize
+            newY = player.y - gridSize;
             shouldMove = true;
           } else if (this.cursors.down.isDown || this.input.keyboard!.addKey('S').isDown) {
-            newY = currentY + gridSize;
+            newY = player.y + gridSize;
             shouldMove = true;
           }
 
           if (this.cursors.left.isDown || this.input.keyboard!.addKey('A').isDown) {
-            newX = currentX - gridSize;
+            newX = player.x - gridSize;
             shouldMove = true;
           } else if (this.cursors.right.isDown || this.input.keyboard!.addKey('D').isDown) {
-            newX = currentX + gridSize;
+            newX = player.x + gridSize;
             shouldMove = true;
           }
 
-          // Only update the image position if it should move and position actually changed
-          if (shouldMove && (newX !== currentX || newY !== currentY)) {
-            // Update the player's image position directly
-            player.setPosition(newX, newY);
+          // Only update position if movement is requested and no collision would occur
+          if (shouldMove) {
+            // Check for potential collisions before moving
+            const bounds = this.staticObjects.getChildren();
+            let canMove = true;
 
-            // Send the new position to the server
-            wsRef.current?.send({
-              type: 'move',
-              x: newX,
-              y: newY
+            bounds.forEach((bound: any) => {
+              const boundBox = bound.getBounds();
+              const playerBox = new Phaser.Geom.Rectangle(newX, newY, gridSize, gridSize);
+              
+              if (Phaser.Geom.Rectangle.Overlaps(boundBox, playerBox)) {
+                canMove = false;
+              }
             });
 
-            this.currentPosition = { x: newX, y: newY };
-            lastMoveTime = currentTime;
+            if (canMove) {
+              player.setPosition(newX, newY);
+
+              // Send the new position to the server
+              wsRef.current?.send({
+                type: 'move',
+                x: newX,
+                y: newY
+              });
+
+              lastMoveTime = currentTime;
+            }
           }
         });
       }
