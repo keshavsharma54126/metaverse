@@ -77,6 +77,7 @@ const Spaces = () => {
                 setParticipants(updatedUsers);
                 setCurrentUser({id: users[0].id});
                 const {name, avatarId, url} = await handleUserUpdata(userId);
+                console.log("name",name)
                 setCurrentUser((prev:any) => ({
                     ...prev,
                     name,
@@ -84,6 +85,7 @@ const Spaces = () => {
                     url,
                     spawn: {x: spawn.x, y: spawn.y}
                 }));
+                console.log("currentUser",currentUser)
             },
             onUserJoined:async(userId,id,x,y)=>{
                 console.log("=== User Joined Event ===")
@@ -154,7 +156,7 @@ const Spaces = () => {
             }
         })
         console.log("res",res.data)
-        return {name:res.data.user.avatar.username,avatarId:res.data.user.avatar?.id,url:res.data.user.avatar?.imageUrl}
+        return {name:res.data.user.username,avatarId:res.data.user.avatar?.id,url:res.data.user.avatar?.imageUrl}
     }
 
 
@@ -259,7 +261,7 @@ const Spaces = () => {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                         </svg>
                     </button>
-                    <div className="h-8 w-px bg-gray-600"></div>
+                    <div className="h-10 w-px bg-gray-600"></div>
                     <div className="flex -space-x-2 overflow-hidden">
                         {participants.map((participant) => (
                             <img

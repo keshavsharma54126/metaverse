@@ -84,10 +84,10 @@ const SpaceComponent = ({ space,currentUser,participants,wsRef }: { space: Space
     if (!phaserRef.current) return;
 
     class MapScene extends Phaser.Scene {
-      private players: Map<string, Phaser.GameObjects.Image> = new Map();
+      private players: Map<string, { sprite: Phaser.GameObjects.Image, nameText: Phaser.GameObjects.Text }> = new Map();
       private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
       private staticObjects!: Phaser.GameObjects.Group;
-      
+      private currentPosition: { x: number, y: number };
       constructor() {
         super({ key: `${space.id}_OfficeScene` });
       }
@@ -226,27 +226,45 @@ const SpaceComponent = ({ space,currentUser,participants,wsRef }: { space: Space
           camera.scrollY = centerY - (camera.height / 2 / newZoom);
         });
       
-        // Initialize player with physics
-        let player: Phaser.Types.Physics.Arcade.ImageWithDynamicBody | undefined;
+        // Initialize player with physics and name
+        let player: Phaser.Types.Physics.Arcade.ImageWithDynamicBody & { nameText?: Phaser.GameObjects.Text } | undefined;
         if (currentUser && currentUser.spawn) {
           player = this.physics.add.image(
             currentUser.spawn.x, 
             currentUser.spawn.y, 
             `avatar_${currentUser.avatarId}`
-          )
-            .setOrigin(0)
-            .setDepth(1)
-            .setDisplaySize(1 * gridSize, 1 * gridSize);
+          ) as Phaser.Types.Physics.Arcade.ImageWithDynamicBody & { nameText?: Phaser.GameObjects.Text };
+          player.setDepth(1)
+          player.setDisplaySize(2*gridSize,2*gridSize);
+          
+          // Add name text above player
+          const nameText = this.add.text(
+            currentUser.spawn.x , 
+            currentUser.spawn.y - 20, 
+            currentUser.name, 
+            { 
+              fontSize: '10px',
+              color: '#ffffff',
+              stroke: '#000001',
+              strokeThickness: 6,
+              fontFamily: 'Arial',
+              fontStyle: 'bold'
+            }
+          ).setOrigin(0.5)
+          nameText.setDepth(2);
 
-          player.setCollideWorldBounds(true);
+          // Attach nameText to player object
+          player.nameText = nameText;
+
+          // player.setCollideWorldBounds(true);
           this.physics.add.collider(player, this.staticObjects);
 
-          this.players.set(currentUser.id, player);
+          this.players.set(currentUser.id, { sprite: player, nameText });
           camera.startFollow(player, true, 0.1, 0.1);
           camera.setFollowOffset(-player.width / 2, -player.height / 2);
         }
 
-        // Initialize other participants with their direct x,y coordinates
+        // Initialize other participants with their direct x,y coordinates and names
         participants.forEach((participant: any) => {
           const participantSprite = this.add.image(
             participant.x, 
@@ -255,28 +273,46 @@ const SpaceComponent = ({ space,currentUser,participants,wsRef }: { space: Space
           )
             .setOrigin(0)
             .setDepth(1)
-            .setDisplaySize(1 * gridSize, 1 * gridSize);
+            .setDisplaySize(2*gridSize, 2*gridSize);
 
-          this.players.set(participant.id, participantSprite);
+          // Add name text above participant - Fix: Use participant's coordinates and name
+          const nameText = this.add.text(
+            participant.x, 
+            participant.y - 20, 
+            participant.name,  // Changed from currentUser.name to participant.name
+            { 
+              fontSize: '10px',
+              color: '#ffffff',
+              stroke: '#000001',
+              strokeThickness: 6,
+              fontFamily: 'Arial',
+              fontStyle: 'bold'
+            }
+          ).setOrigin(0.5)
+          nameText.setDepth(2);
+
+          this.players.set(participant.id, { sprite: participantSprite, nameText });
         });
 
-        // Handle websocket events for player movement
+        // Update websocket handlers to move both sprite and name text
         if (wsRef.current) {
           wsRef.current.setHandlers({
-            onPositionUpdate: (userId:string,id:string,x:number,y:number) => {
+            onPositionUpdate: (userId: string, id: string, x: number, y: number) => {
               const player = this.players.get(id);
               if (player) {
-                player.setPosition(x,y );
+                player.sprite.setPosition(x, y);
+                player.nameText?.setPosition(x, y - 20);
                 if (userId === currentUser.id) {
-                  camera.startFollow(player, true);
+                  camera.startFollow(player.sprite, true);
                 }
               }
             },
-            onUserLeft: (userId:string,id:string) => {
+            onUserLeft: (userId: string, id: string) => {
               const player = this.players.get(id);
               if (player) {
-                player.destroy();
-                this.players.delete(userId);
+                player.sprite.destroy();
+                player.nameText?.destroy();
+                this.players.delete(id);
               }
             },
             onMovementRejected: (userId:string, x:number, y:number) => {
@@ -285,7 +321,8 @@ const SpaceComponent = ({ space,currentUser,participants,wsRef }: { space: Space
                 this.currentPosition = { x, y };
                 const player = this.players.get(userId);
                 if (player) {
-                  player.setPosition(x * gridSize, y * gridSize);
+                  player.sprite.setPosition(x * gridSize, y * gridSize);
+                  player.nameText?.setPosition(x * gridSize + (gridSize/2), y * gridSize - 20);
                 }
               }
             }
@@ -296,7 +333,7 @@ const SpaceComponent = ({ space,currentUser,participants,wsRef }: { space: Space
         
         // Track last move time to control movement rate
         let lastMoveTime = 0;
-        const moveDelay = 150; // Adjust this value to control movement speed (milliseconds)
+        const moveDelay = 200; // Adjust this value to control movement speed (milliseconds)
 
         // Initialize position from spawn point
         if (currentUser && currentUser.spawn) {
@@ -354,6 +391,7 @@ const SpaceComponent = ({ space,currentUser,participants,wsRef }: { space: Space
 
             if (canMove) {
               player.setPosition(newX, newY);
+              player.nameText?.setPosition(newX, newY-20);
 
               // Send the new position to the server
               wsRef.current?.send({
