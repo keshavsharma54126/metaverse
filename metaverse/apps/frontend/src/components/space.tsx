@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import Phaser from 'phaser';
-import { FiZoomIn, FiZoomOut } from 'react-icons/fi';
+import { FiZoomIn, FiZoomOut, FiUsers, FiSettings } from 'react-icons/fi';
 import axios from 'axios';
 
 export interface Element {
@@ -450,33 +450,47 @@ const SpaceComponent = ({ space,currentUser,participants,wsRef }: { space: Space
   };
 
   return (
-    <div className="flex flex-col md:flex-row h-screen bg-gradient-to-br from-slate-900 to-indigo-900">
+    <div className="flex flex-col md:flex-row h-screen ">
       <div className="flex-1 relative">
         <div ref={phaserRef} className="w-full h-full" />
         
-        {/* Top Navigation Bar */}
-        <div className="absolute top-0 left-0 right-0 p-4 flex justify-between items-center bg-black/30 backdrop-blur-md">
+        {/* Enhanced Top Navigation Bar */}
+        <div className="absolute top-4 left-4 right-4 p-4 flex justify-between items-center bg-black/40 backdrop-blur-md rounded-2xl border border-white/10">
           <div className="flex items-center gap-4">
-            <h1 className="text-white text-xl font-semibold">{space.name}</h1>
+            <h1 className="text-white text-xl font-bold">{space.name}</h1>
+            <div className="h-6 w-px bg-white/20" />
+            <div className="flex items-center gap-2 text-white/70">
+              <FiUsers className="w-5 h-5" />
+              <span>{participants?.length || 0} online</span>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <button className="p-2 text-white/70 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-300">
+              <FiSettings className="w-5 h-5" />
+            </button>
           </div>
         </div>
 
-        {/* Tools Panel */}
-        <div className="flex flex-col absolute left-1 top-1/2 -translate-y-1/2 bg-black/30 backdrop-blur-md rounded-2xl p-3 space-y-3 border border-white/10">
+        {/* Enhanced Tools Panel */}
+        <div className="flex flex-col absolute left-4 top-1/2 -translate-y-1/2 bg-black/40 backdrop-blur-md rounded-2xl p-3 space-y-3 border border-white/10">
           <button
-            className="p-3 text-white/80 hover:bg-white/10 rounded-xl transition-all duration-300"
+            className="p-3 text-white/70 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-300 group relative"
             onClick={() => handleZoom('in')}
-            title="Zoom In"
           >
             <FiZoomIn size={24} />
+            <span className="absolute left-full ml-2 px-2 py-1 bg-black/80 text-white text-sm rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+              Zoom In
+            </span>
           </button>
           
           <button
-            className="p-3 text-white/80 hover:bg-white/10 rounded-xl transition-all duration-300"
+            className="p-3 text-white/70 hover:text-white hover:bg-white/10 rounded-xl transition-all duration-300 group relative"
             onClick={() => handleZoom('out')}
-            title="Zoom Out"
           >
             <FiZoomOut size={24} />
+            <span className="absolute left-full ml-2 px-2 py-1 bg-black/80 text-white text-sm rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+              Zoom Out
+            </span>
           </button>
         </div>
       </div>

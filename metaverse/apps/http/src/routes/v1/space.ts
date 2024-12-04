@@ -137,7 +137,7 @@ spaceRouter.get("/all/:userId", userMiddleware, async (req: any, res: any) => {
   try {
     const spaces = await client.space.findMany({
       where: {
-        adminId: req.paramsuserId,
+        adminId: req.params.userId,
       },
     });
     if (!spaces) {
