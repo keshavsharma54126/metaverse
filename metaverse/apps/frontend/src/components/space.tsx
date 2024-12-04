@@ -226,7 +226,7 @@ const SpaceComponent = ({ space,currentUser,participants,wsRef }: { space: Space
           camera.scrollY = centerY - (camera.height / 2 / newZoom);
         });
       
-        // Initialize player with physics and name
+        // Initialize current player
         let player: Phaser.Types.Physics.Arcade.ImageWithDynamicBody & { nameText?: Phaser.GameObjects.Text } | undefined;
         if (currentUser && currentUser.spawn) {
           player = this.physics.add.image(
@@ -234,13 +234,15 @@ const SpaceComponent = ({ space,currentUser,participants,wsRef }: { space: Space
             currentUser.spawn.y, 
             `avatar_${currentUser.avatarId}`
           ) as Phaser.Types.Physics.Arcade.ImageWithDynamicBody & { nameText?: Phaser.GameObjects.Text };
-          player.setDepth(1)
-          player.setDisplaySize(2*gridSize,2*gridSize);
           
-          // Add name text above player
+          player.setOrigin(0.5) // Center the sprite's origin
+            .setDepth(1)
+            .setDisplaySize(2*gridSize, 2*gridSize);
+          
+          // Add name text centered above player
           const nameText = this.add.text(
-            currentUser.spawn.x , 
-            currentUser.spawn.y - 20, 
+            currentUser.spawn.x, 
+            currentUser.spawn.y - gridSize, 
             currentUser.name, 
             { 
               fontSize: '10px',
@@ -250,36 +252,30 @@ const SpaceComponent = ({ space,currentUser,participants,wsRef }: { space: Space
               fontFamily: 'Arial',
               fontStyle: 'bold'
             }
-          ).setOrigin(0.5)
+          ).setOrigin(0.5);
           nameText.setDepth(2);
 
-          // Attach nameText to player object
           player.nameText = nameText;
-
-          // player.setCollideWorldBounds(true);
-          this.physics.add.collider(player, this.staticObjects);
-
           this.players.set(currentUser.id, { sprite: player, nameText });
+          
           camera.startFollow(player, true, 0.1, 0.1);
-          camera.setFollowOffset(-player.width / 2, -player.height / 2);
         }
 
-        // Initialize other participants with their direct x,y coordinates and names
+        // Initialize other participants
         participants.forEach((participant: any) => {
           const participantSprite = this.add.image(
             participant.x, 
             participant.y, 
             `avatar_${participant.avatarId}`
           )
-            .setOrigin(0)
+            .setOrigin(0.5) // Center the sprite's origin
             .setDepth(1)
             .setDisplaySize(2*gridSize, 2*gridSize);
 
-          // Add name text above participant - Fix: Use participant's coordinates and name
           const nameText = this.add.text(
             participant.x, 
-            participant.y - 20, 
-            participant.name,  // Changed from currentUser.name to participant.name
+            participant.y - gridSize, 
+            participant.name,
             { 
               fontSize: '10px',
               color: '#ffffff',
@@ -288,20 +284,22 @@ const SpaceComponent = ({ space,currentUser,participants,wsRef }: { space: Space
               fontFamily: 'Arial',
               fontStyle: 'bold'
             }
-          ).setOrigin(0.5)
+          ).setOrigin(0.5);
           nameText.setDepth(2);
 
           this.players.set(participant.id, { sprite: participantSprite, nameText });
         });
 
-        // Update websocket handlers to move both sprite and name text
+        // Update websocket handlers
         if (wsRef.current) {
           wsRef.current.setHandlers({
             onPositionUpdate: (userId: string, id: string, x: number, y: number) => {
               const player = this.players.get(id);
               if (player) {
+                // Update sprite and name positions
                 player.sprite.setPosition(x, y);
-                player.nameText?.setPosition(x, y - 20);
+                player.nameText?.setPosition(x, y - gridSize);
+                
                 if (userId === currentUser.id) {
                   camera.startFollow(player.sprite, true);
                 }
@@ -315,14 +313,13 @@ const SpaceComponent = ({ space,currentUser,participants,wsRef }: { space: Space
                 this.players.delete(id);
               }
             },
-            onMovementRejected: (userId:string, x:number, y:number) => {
-              console.log('Movement rejected, resetting to:', { x, y });
+            onMovementRejected: (userId: string, x: number, y: number) => {
               if (userId === currentUser.id) {
                 this.currentPosition = { x, y };
                 const player = this.players.get(userId);
                 if (player) {
-                  player.sprite.setPosition(x * gridSize, y * gridSize);
-                  player.nameText?.setPosition(x * gridSize + (gridSize/2), y * gridSize - 20);
+                  player.sprite.setPosition(x, y);
+                  player.nameText?.setPosition(x, y - gridSize);
                 }
               }
             }
@@ -350,7 +347,6 @@ const SpaceComponent = ({ space,currentUser,participants,wsRef }: { space: Space
           const currentTime = Date.now();
           if (currentTime - lastMoveTime < moveDelay) return;
 
-          // Reset velocity at the start of each update
           player.setVelocity(0);
 
           let newX = player.x;
@@ -391,7 +387,7 @@ const SpaceComponent = ({ space,currentUser,participants,wsRef }: { space: Space
 
             if (canMove) {
               player.setPosition(newX, newY);
-              player.nameText?.setPosition(newX, newY-20);
+              player.nameText?.setPosition(newX, newY - gridSize);
 
               // Send the new position to the server
               wsRef.current?.send({
