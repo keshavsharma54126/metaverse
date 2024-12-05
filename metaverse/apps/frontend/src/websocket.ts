@@ -8,6 +8,7 @@ type WebSocketHandlers = {
     onMovementRejected?: (userId: string, x: number, y: number) => void;
     onEmote?: (userId: string, emote: string) => void;
     onError?: (error: any) => void;
+    onMessage?: (userId: string, id:string, message:string,userName:string,avatarUrl:string,timestamp:Date) => void;
   };
 
 export class GameWebSocket {
@@ -161,12 +162,17 @@ export class GameWebSocket {
                 )
                 break;
 
-            case "emote":
-                this.handlers.onEmote?.(
+            case "message":
+                this.handlers.onMessage?.(
                     parsedData.payload.userId,
-                    parsedData.payload.emote
+                    parsedData.payload.id,
+                    parsedData.payload.message,
+                    parsedData.payload.userName,
+                    parsedData.payload.avatarUrl,
+                    parsedData.payload.timestamp
                 )
                 break;
+
 
             default:
                 this.log("unknown message type",parsedData.type)

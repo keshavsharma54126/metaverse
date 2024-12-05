@@ -114,10 +114,27 @@ export class User {
             );
             console.log("Movement broadcasted")
         
-            return;
-          
-          
+          case "message":
+            const message = parsedData.payload?.message;
+            const userName = parsedData.payload?.userName;
+            const url = parsedData.payload?.avatarUrl;
+            const timestamp = parsedData.payload?.timestamp;
+
+            RoomManager.getInstance().broadcast({
+              type:"message",
+              payload:{
+                userId:this.userId,
+                id:this.id,
+                userName:userName,
+                avatarUrl:url,
+                message:message,
+                timestamp:timestamp
+              }
+            },this,this.spaceId!)
+        
          
+
+          break;
       }
     });
   }

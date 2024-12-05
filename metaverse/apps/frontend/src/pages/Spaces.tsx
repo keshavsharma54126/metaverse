@@ -42,6 +42,7 @@ const Spaces = () => {
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [messageInput, setMessageInput] = useState('');
     const chatContainerRef = useRef<HTMLDivElement>(null);
+    const inputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         const fetchSpace = async () => {
@@ -142,6 +143,17 @@ const Spaces = () => {
             },
             onMovementRejected:(userId,x,y)=>{
                 console.log("movement rejected",userId,x,y)
+            },
+            onMessage:(userId:string,id:string,message:string,userName:string,url:string,timestamp:Date)=>{
+                console.log("message",userId,id,message,userName,url,timestamp)
+                setMessages((prev)=>[...prev,{
+                    id,
+                    userId,
+                    userName,
+                    message,
+                    avatarUrl:url,
+                    timestamp
+                }])
             }
 
 
@@ -195,9 +207,31 @@ const Spaces = () => {
         }, 100);
         
         // TODO: Send message through websocket
-
-        // wsRef.current?.sendMessage(messageInput);
+        console.log("error loggin",currentUser.url)
+        wsRef.current?.send({
+            type:"message",
+            payload:{
+                userId:currentUser.userId,
+                id:newMessage.id,
+                userName:currentUser.name,
+                avatarUrl:currentUser.url,
+                message:newMessage.message,
+                timestamp:newMessage.timestamp
+            }
+        })
     };
+
+    // Add click event listener to the document
+    useEffect(() => {
+        const handleGlobalClick = (e: MouseEvent) => {
+            if (inputRef.current && !inputRef.current.contains(e.target as Node)) {
+                inputRef.current.blur();
+            }
+        };
+
+        document.addEventListener('click', handleGlobalClick);
+        return () => document.removeEventListener('click', handleGlobalClick);
+    }, []);
 
     if(loading) return <div className='flex justify-center items-center h-screen'><Loader/></div>
 
@@ -296,16 +330,12 @@ const Spaces = () => {
                                             value={messageInput}
                                             onChange={(e) => {
                                                 e.stopPropagation();
-                                                
-                                                    setMessageInput(e.target.value);
-                                                
+                                                setMessageInput(e.target.value);
                                             }}
                                             onKeyDown={(e) => {
-                                                const isMovementKey = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'w', 'a', 's', 'd'].includes(e.key.toLowerCase());
-                                                if (messageInput === '' && isMovementKey) {
-                                                    return;
-                                                }
-                                                e.stopPropagation();
+                                               e.stopPropagation()
+                                               e.nativeEvent.stopImmediatePropagation()
+                                          
                                                 if (e.key === 'Enter') {
                                                     handleSendMessage();
                                                 }
@@ -313,6 +343,7 @@ const Spaces = () => {
                                             placeholder="Type your message..."
                                             className="w-full bg-white/5 text-white px-6 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500/50 placeholder-gray-400
                                                 transition-all duration-300 border border-white/5 hover:border-white/10"
+                                            ref={inputRef}
                                         />
                                         <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center space-x-1">
                                             <button className="p-2 hover:bg-white/5 rounded-lg transition-colors">
