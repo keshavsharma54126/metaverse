@@ -15,6 +15,15 @@ interface Participant{
     position:{x:number,y:number}
 }
 
+interface ChatMessage {
+    id: string;
+    userId: string;
+    userName: string;
+    message: string;
+    timestamp: Date;
+    avatarUrl?: string;
+}
+
 const Spaces = () => {
     const { id } = useParams<{ id?: string }>();
     const navigate = useNavigate();
@@ -30,6 +39,10 @@ const Spaces = () => {
     const [participants,setParticipants] = useState<Participant[]>([]);
     const wsRef = useRef<GameWebSocket|null>(null);
     const wsUrl = import.meta.env.VITE_WS_URL;
+    const [messages, setMessages] = useState<ChatMessage[]>([]);
+    const [messageInput, setMessageInput] = useState('');
+    const chatContainerRef = useRef<HTMLDivElement>(null);
+
     useEffect(() => {
         const fetchSpace = async () => {
             if (!id) return;
@@ -159,20 +172,43 @@ const Spaces = () => {
         return {name:res.data.user.username,avatarId:res.data.user.avatar?.id,url:res.data.user.avatar?.imageUrl}
     }
 
+    const handleSendMessage = () => {
+        if (!messageInput.trim()) return;
+        
+        const newMessage: ChatMessage = {
+            id: crypto.randomUUID(),
+            userId: currentUser.userId,
+            userName: currentUser.name,
+            message: messageInput,
+            timestamp: new Date(),
+            avatarUrl: currentUser.url
+        };
+        
+        setMessages(prev => [...prev, newMessage]);
+        setMessageInput('');
+        
+        // Scroll to bottom of chat
+        setTimeout(() => {
+            if (chatContainerRef.current) {
+                chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+            }
+        }, 100);
+        
+        // TODO: Send message through websocket
 
+        wsRef.current?.sendMessage(messageInput);
+    };
 
     if(loading) return <div className='flex justify-center items-center h-screen'><Loader/></div>
 
     return (
-        <div className="flex flex-col h-screen bg-[conic-gradient(at_bottom_left,_var(--tw-gradient-stops))] from-gray-900 via-purple-900 to-violet-900">
-            {/* Ambient background animation */}
-            <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]"></div>
+        <div className="flex flex-col h-screen w-screen bg-[conic-gradient(at_bottom_left,_var(--tw-gradient-stops))] from-gray-900 via-purple-900 to-violet-900">
+
 
             {/* Main Game Viewport */}
             <div className="flex-1 relative p-6">
                 {/* Game Canvas with enhanced effects */}
-                <div className="absolute inset-0 overflow-hidden rounded-3xl shadow-[0_0_100px_rgba(139,92,246,0.15)] border border-violet-500/20 backdrop-blur-sm
-                    [background:linear-gradient(rgba(0,0,0,0.7),rgba(0,0,0,0.7))]">
+                <div className="absolute w-scren inset-0 overflow-hidden rounded-3xl shadow-[0_0_100px_rgba(139,92,246,0.15)] border border-violet-500/20 backdrop-blur-sm">
                     {space && <SpaceComponent space={space} currentUser={currentUser} participants={participants} wsRef={wsRef}/>}
                 </div>
 
@@ -209,54 +245,81 @@ const Spaces = () => {
                         </button>
                     </div>
 
-                    {/* Chat messages container */}
+
                    
 
                     {/* Chat input - now inside the container */}
                     {isChatOpen && (
-                        <div className="p-4 border-t border-white/10 shrink-0">
-                             <div className="flex-1 p-5 overflow-y-auto custom-scrollbar space-y-4">
-                        {/* Example message bubbles - you can replace these with your actual messages */}
-                        <div className="flex items-start space-x-3">
-                            <img src="https://via.placeholder.com/32" alt="User" className="w-8 h-8 rounded-full" />
-                            <div className="bg-gray-700/50 rounded-2xl rounded-tl-none p-3 max-w-[80%]">
-                                <p className="text-sm text-gray-300">Hello everyone! 👋</p>
-                            </div>
-                        </div>
-                        <div className="flex items-start justify-end space-x-3">
-                            <div className="bg-violet-600/50 rounded-2xl rounded-tr-none p-3 max-w-[80%]">
-                                <p className="text-sm">Hi there! Welcome to the space!</p>
-                            </div>
-                            <img src="https://via.placeholder.com/32" alt="User" className="w-8 h-8 rounded-full" />
-                                </div>
-                            </div>
-                            <div className="flex items-center space-x-2 ">
-                                
-                                <div className="flex-1 relative">
-                                    <input 
-                                        type="text" 
-                                        placeholder="Type your message..."
-                                        className="w-full bg-white/5 text-white px-6 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500/50 placeholder-gray-400
-                                            transition-all duration-300 border border-white/5 hover:border-white/10"
-                                    />
-                                    <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center space-x-1">
-                                        <button className="p-2 hover:bg-white/5 rounded-lg transition-colors">
-                                            <svg className="w-5 h-5 text-gray-400 hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                            </svg>
-                                        </button>
-                                        <button className="p-2 hover:bg-white/5 rounded-lg transition-colors">
-                                            <svg className="w-5 h-5 text-gray-400 hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
-                                            </svg>
-                                        </button>
+                        <div className="flex flex-col h-full">
+                            <div 
+                                ref={chatContainerRef}
+                                className="flex-1 p-5 overflow-y-auto custom-scrollbar space-y-4"
+                            >
+                                {messages.map((msg) => (
+                                    <div 
+                                        key={msg.id}
+                                        className={`flex items-start gap-3 ${
+                                            msg.userId === currentUser.userId ? 'flex-row-reverse' : ''
+                                        }`}
+                                    >
+                                        <img 
+                                            src={msg.avatarUrl} 
+                                            alt={msg.userName}
+                                            className="w-8 h-8 rounded-full"
+                                        />
+                                        <div className={`flex flex-col ${
+                                            msg.userId === currentUser.userId ? 'items-end' : ''
+                                        }`}>
+                                            <span className="text-sm text-gray-400">{msg.userName}</span>
+                                            <div className={`mt-1 px-4 py-2 rounded-xl max-w-[80%] ${
+                                                msg.userId === currentUser.userId
+                                                    ? 'bg-violet-600 text-white rounded-tr-none'
+                                                    : 'bg-gray-700 text-white rounded-tl-none'
+                                            }`}>
+                                                {msg.message}
+                                            </div>
+                                            <span className="text-xs text-gray-500 mt-1">
+                                                {new Date(msg.timestamp).toLocaleTimeString()}
+                                            </span>
+                                        </div>
                                     </div>
+                                ))}
+                            </div>
+                            
+                            <div className="p-4 border-t border-white/10">
+                                <div className="flex items-center space-x-2">
+                                    <div className="flex-1 relative">
+                                        <input 
+                                            type="text" 
+                                            value={messageInput}
+                                            onChange={(e) => setMessageInput(e.target.value)}
+                                            onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                                            placeholder="Type your message..."
+                                            className="w-full bg-white/5 text-white px-6 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500/50 placeholder-gray-400
+                                                transition-all duration-300 border border-white/5 hover:border-white/10"
+                                        />
+                                        <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center space-x-1">
+                                            <button className="p-2 hover:bg-white/5 rounded-lg transition-colors">
+                                                <svg className="w-5 h-5 text-gray-400 hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                </svg>
+                                            </button>
+                                            <button className="p-2 hover:bg-white/5 rounded-lg transition-colors">
+                                                <svg className="w-5 h-5 text-gray-400 hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <button 
+                                        onClick={handleSendMessage}
+                                        className="bg-violet-600 p-4 rounded-xl hover:bg-violet-700 transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-violet-500/25"
+                                    >
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                                        </svg>
+                                    </button>
                                 </div>
-                                <button className="bg-violet-600 p-4 rounded-xl hover:bg-violet-700 transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-violet-500/25">
-                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                                    </svg>
-                                </button>
                             </div>
                         </div>
                     )}

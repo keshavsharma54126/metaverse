@@ -22,6 +22,7 @@ model User {
   role              Role
   spaces            Space[] @relation("AdminSpaces")
   invitedSpaces     Space[] @relation("MemberSpaces")
+  messages          Message[]
   avatar            Avatar?  @relation(fields: [avatarId], references: [id],onDelete:Cascade)
 }
 
@@ -41,6 +42,7 @@ model Space {
   createdAt           DateTime  @default(now())
   updatedAt           DateTime  
   elements            spaceElements[]
+  messages            Message[]
   members             User[]  @relation("MemberSpaces")
   admin               User   @relation(fields: [adminId], references: [id],name:"AdminSpaces",onDelete:Cascade)
   map                 Map    @relation(fields: [mapId], references: [id],onDelete:Cascade)
@@ -94,6 +96,17 @@ model Avatar {
   imageUrl String?
   name     String?
   users    User[]
+}
+
+model Message{
+  id        String  @id @unique @default(cuid())
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime
+  spaceId   String
+  userId    String
+  space     Space   @relation(fields: [spaceId], references: [id],onDelete:Cascade)
+  user      User    @relation(fields: [userId], references: [id],onDelete:Cascade)
 }
 
 enum Role {
