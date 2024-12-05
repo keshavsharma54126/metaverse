@@ -28,6 +28,7 @@ export const AddElementSchema = z.object({
   spaceId: z.string(),
   x: z.number(),
   y: z.number(),
+  name:z.string(),
 });
 
 export const DeleteElementSchema = z.object({
@@ -78,3 +79,10 @@ export const UpdateMapSchema = z.object({
   dimensions: z.string(),
   name: z.string(),
 });
+
+export const MessageSchema = z.object({
+  userId:z.string(),
+  id:z.string(),
+  message:z.string(),
+  spaceId:z.string(),
+})

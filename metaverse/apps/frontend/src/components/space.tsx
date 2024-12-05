@@ -347,8 +347,6 @@ const SpaceComponent = ({ space,currentUser,participants,wsRef }: { space: Space
           const currentTime = Date.now();
           if (currentTime - lastMoveTime < moveDelay) return;
 
-          player.setVelocity(0);
-
           let newX = player.x;
           let newY = player.y;
           let shouldMove = false;
@@ -372,7 +370,6 @@ const SpaceComponent = ({ space,currentUser,participants,wsRef }: { space: Space
 
           // Only update position if movement is requested and no collision would occur
           if (shouldMove) {
-            // Check for potential collisions before moving
             const bounds = this.staticObjects.getChildren();
             let canMove = true;
 
@@ -386,14 +383,21 @@ const SpaceComponent = ({ space,currentUser,participants,wsRef }: { space: Space
             });
 
             if (canMove) {
-              player.setPosition(newX, newY);
-              player.nameText?.setPosition(newX, newY - gridSize);
-
-              // Send the new position to the server
-              wsRef.current?.send({
-                type: 'move',
+              // Use tweens for smooth movement
+              this.tweens.add({
+                targets: [player, player.nameText],
                 x: newX,
-                y: newY
+                y: (target: any) => target === player ? newY : newY - gridSize, // Offset for nameText
+                duration: 150, // Adjust this value to control movement speed
+                ease: 'Power2', // You can try different easing functions like 'Linear', 'Cubic', etc.
+                onComplete: () => {
+                  // Send the new position to the server after movement completes
+                  wsRef.current?.send({
+                    type: 'move',
+                    x: newX,
+                    y: newY
+                  });
+                }
               });
 
               lastMoveTime = currentTime;

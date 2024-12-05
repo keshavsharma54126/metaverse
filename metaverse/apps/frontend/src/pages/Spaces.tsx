@@ -5,7 +5,7 @@ import axios from 'axios';
 import Loader from '../components/Loader';
 import { Space } from '../components/space';
 import { GameWebSocket } from '../websocket';
-
+import { jwtDecode } from "jwt-decode";
 interface Participant{
     id:string;
     userId:string;
@@ -54,8 +54,25 @@ const Spaces = () => {
                 console.log(err);
             }
         };
-        
-        fetchSpace().finally(() => {
+        const fetchMessages = async()=>{
+            const token = localStorage.getItem("authToken") as string;
+            const res = await axios.get(`${BACKEND_URL}/space/messages/${id}`,{
+                headers:{
+                    Authorization: `Bearer ${token}`
+                }
+            });
+            console.log("messages",res.data.messages)
+            setMessages(res.data.messages.map((message:any)=>({
+                ...message,
+                avatarUrl:message.user.avatar.imageUrl,
+                userName:message.user.username,
+                userId:message.user.id,
+                message:message.content,
+                id:message.id,
+                timestamp:new Date(message.createdAt),
+            })));
+        }
+        Promise.all([fetchSpace(),fetchMessages()]).finally(()=>{
             setLoading(false);
         });
     }, [id, BACKEND_URL]);
@@ -89,17 +106,15 @@ const Spaces = () => {
                 }));
                 
                 setParticipants(updatedUsers);
-                setCurrentUser({id: users[0].id});
                 const {name, avatarId, url} = await handleUserUpdata(userId);
-                console.log("name",name)
-                setCurrentUser((prev:any) => ({
-                    ...prev,
+                setCurrentUser({
+                    id: users[0].id,
+                    userId: userId,
                     name,
                     avatarId,
                     url,
                     spawn: {x: spawn.x, y: spawn.y}
-                }));
-                console.log("currentUser",currentUser)
+                });
             },
             onUserJoined:async(userId,id,x,y)=>{
                 console.log("=== User Joined Event ===")
@@ -184,7 +199,7 @@ const Spaces = () => {
         return {name:res.data.user.username,avatarId:res.data.user.avatar?.id,url:res.data.user.avatar?.imageUrl}
     }
 
-    const handleSendMessage = () => {
+    const handleSendMessage = async() => {
         if (!messageInput.trim()) return;
         
         const newMessage: ChatMessage = {
@@ -207,7 +222,7 @@ const Spaces = () => {
         }, 100);
         
         // TODO: Send message through websocket
-        console.log("error loggin",currentUser.url)
+        
         wsRef.current?.send({
             type:"message",
             payload:{
@@ -217,6 +232,18 @@ const Spaces = () => {
                 avatarUrl:currentUser.url,
                 message:newMessage.message,
                 timestamp:newMessage.timestamp
+            }
+        })
+        const token = localStorage.getItem("authToken") as string;
+        const decoded  = jwtDecode(token) as any
+        await axios.post(`${BACKEND_URL}/space/message`,{
+            userId: decoded.userId,
+            id: newMessage.id,
+            message: newMessage.message,
+            spaceId:id,
+        },{
+            headers:{
+                Authorization: `Bearer ${token}`
             }
         })
     };
@@ -482,4 +509,8 @@ const ControlButton = ({ active, onClick, icon }: { active: boolean, onClick: ()
 };
 
 export default Spaces;
+
+function jwt_decode(token: string | null) {
+    throw new Error('Function not implemented.');
+}
 

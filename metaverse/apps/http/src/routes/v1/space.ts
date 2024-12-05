@@ -4,6 +4,7 @@ import {
   AddElementSchema,
   CreateSpaceSchema,
   DeleteElementSchema,
+  MessageSchema,
 } from "../../types";
 import client from "@repo/db/client";
 
@@ -181,6 +182,7 @@ spaceRouter.post("/element", userMiddleware, async (req: any, res: any) => {
         spaceId: parsedData.data.spaceId,
         x: parsedData.data.x,
         y: parsedData.data.y,
+        name:parsedData.data.name
       },
     });
     return res.status(200).json({
@@ -284,3 +286,73 @@ spaceRouter.get("/:spaceId", async (req: any, res: any) => {
     });
   }
 });
+
+spaceRouter.post("/message", userMiddleware, async (req: any, res: any) => {
+  try {
+
+    const parsedData = MessageSchema.safeParse(req.body);
+    
+    if (!parsedData.success) {
+   
+      return res.status(400).json({
+        message: "invalid request body",
+        errors: parsedData.error.errors
+      });
+    }
+
+    const message = await client.message.create({
+      data: {
+        id:parsedData.data.id,
+        userId: parsedData.data.userId,
+        content: parsedData.data.message,
+        spaceId: parsedData.data.spaceId,
+        createdAt: new Date()
+      }
+    });
+
+    console.log("Created message:", message);
+
+    return res.status(200).json({
+      message: "message sent",
+      data: message
+    });
+  } catch (e) {
+    console.error("Message creation error:", {
+      error: e,
+      stack: e instanceof Error ? e.stack : undefined,
+      message: e instanceof Error ? e.message : String(e)
+    });
+    return res.status(500).json({
+      message: "internal server error",
+      error: e instanceof Error ? e.message : String(e)
+    });
+  }
+});
+
+spaceRouter.get("/messages/:spaceId", userMiddleware, async (req: any, res: any) => {
+  try{
+    const messages = await client.message.findMany({
+      where:{
+        spaceId:req.params.spaceId
+      },
+      include:{
+        user:{
+          select:{
+            username:true,
+            avatarId:true,
+            avatar:{
+              select:{
+                imageUrl:true
+              }
+            }
+          }
+        }
+      }
+    })
+    return res.status(200).json({messages})
+  }catch(e){
+    return res.status(500).json({
+      message: "internal server error",
+    });
+  }
+})

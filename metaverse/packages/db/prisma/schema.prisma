@@ -99,10 +99,10 @@ model Avatar {
 }
 
 model Message{
-  id        String  @id @unique @default(cuid())
+  id        String  @id @unique 
   content   String
   createdAt DateTime @default(now())
-  updatedAt DateTime
+  updatedAt DateTime?
   spaceId   String
   userId    String
   space     Space   @relation(fields: [spaceId], references: [id],onDelete:Cascade)
