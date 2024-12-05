@@ -196,7 +196,7 @@ const Spaces = () => {
         
         // TODO: Send message through websocket
 
-        wsRef.current?.sendMessage(messageInput);
+        // wsRef.current?.sendMessage(messageInput);
     };
 
     if(loading) return <div className='flex justify-center items-center h-screen'><Loader/></div>
@@ -215,7 +215,7 @@ const Spaces = () => {
                 {/* Enhanced Chat overlay with glass morphism */}
                 <div 
                     onClick={()=>setChatOpen(true)} 
-                    className={`absolute top-6 right-6 w-[28rem] transition-all duration-500 ease-out transform 
+                    className={`absolute top-0 right-6 w-[28rem] transition-all duration-500 ease-out transform 
                         ${isChatOpen ? 'h-[calc(100vh-9rem)]' : 'h-[4rem] hover:scale-[1.02] cursor-pointer'} 
                         bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-xl text-white rounded-3xl 
                         shadow-[0_8px_32px_rgba(0,0,0,0.3)] border border-white/10
@@ -250,7 +250,8 @@ const Spaces = () => {
 
                     {/* Chat input - now inside the container */}
                     {isChatOpen && (
-                        <div className="flex flex-col h-full">
+                        <div className="flex flex-col h-full ">
+                            {/* Chat messages container with max height */}
                             <div 
                                 ref={chatContainerRef}
                                 className="flex-1 p-5 overflow-y-auto custom-scrollbar space-y-4"
@@ -286,14 +287,29 @@ const Spaces = () => {
                                 ))}
                             </div>
                             
-                            <div className="p-4 border-t border-white/10">
+                            {/* Input container with sticky positioning */}
+                            <div className="p-8 border-t border-white/10 bg-gray-900/90 backdrop-blur-xl">
                                 <div className="flex items-center space-x-2">
                                     <div className="flex-1 relative">
                                         <input 
                                             type="text" 
                                             value={messageInput}
-                                            onChange={(e) => setMessageInput(e.target.value)}
-                                            onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                                            onChange={(e) => {
+                                                e.stopPropagation();
+                                                
+                                                    setMessageInput(e.target.value);
+                                                
+                                            }}
+                                            onKeyDown={(e) => {
+                                                const isMovementKey = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'w', 'a', 's', 'd'].includes(e.key.toLowerCase());
+                                                if (messageInput === '' && isMovementKey) {
+                                                    return;
+                                                }
+                                                e.stopPropagation();
+                                                if (e.key === 'Enter') {
+                                                    handleSendMessage();
+                                                }
+                                            }}
                                             placeholder="Type your message..."
                                             className="w-full bg-white/5 text-white px-6 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500/50 placeholder-gray-400
                                                 transition-all duration-300 border border-white/5 hover:border-white/10"
