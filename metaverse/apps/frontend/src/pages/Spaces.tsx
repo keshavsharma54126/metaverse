@@ -43,6 +43,7 @@ const Spaces = () => {
     const [messageInput, setMessageInput] = useState('');
     const chatContainerRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
+    const [isChatFocused, setIsChatFocused] = useState(false);
 
     useEffect(() => {
         const fetchSpace = async () => {
@@ -160,7 +161,7 @@ const Spaces = () => {
                 console.log("movement rejected",userId,x,y)
             },
             onMessage:(userId:string,id:string,message:string,userName:string,url:string,timestamp:Date)=>{
-                console.log("message",userId,id,message,userName,url,timestamp)
+                console.log("chatmessage",userId,id,message,userName,url,timestamp)
                 setMessages((prev)=>[...prev,{
                     id,
                     userId,
@@ -224,7 +225,7 @@ const Spaces = () => {
         // TODO: Send message through websocket
         
         wsRef.current?.send({
-            type:"message",
+            type:"chat message",
             payload:{
                 userId:currentUser.userId,
                 id:newMessage.id,
@@ -270,7 +271,7 @@ const Spaces = () => {
             <div className="flex-1 relative p-6">
                 {/* Game Canvas with enhanced effects */}
                 <div className="absolute w-scren inset-0 overflow-hidden rounded-3xl shadow-[0_0_100px_rgba(139,92,246,0.15)] border border-violet-500/20 backdrop-blur-sm">
-                    {space && <SpaceComponent space={space} currentUser={currentUser} participants={participants} wsRef={wsRef}/>}
+                    {space && <SpaceComponent space={space} currentUser={currentUser} participants={participants} wsRef={wsRef} isChatFocused={isChatFocused}/>}
                 </div>
 
                 {/* Enhanced Chat overlay with glass morphism */}
@@ -356,16 +357,24 @@ const Spaces = () => {
                                             type="text" 
                                             value={messageInput}
                                             onChange={(e) => {
+                                                if (!isChatFocused) return;
                                                 e.stopPropagation();
                                                 setMessageInput(e.target.value);
                                             }}
                                             onKeyDown={(e) => {
-                                               e.stopPropagation()
-                                               e.nativeEvent.stopImmediatePropagation()
-                                          
+                                                if (!isChatFocused) return;
+                                                e.stopPropagation();
+                                                e.nativeEvent.stopImmediatePropagation();
+                                                
                                                 if (e.key === 'Enter') {
                                                     handleSendMessage();
                                                 }
+                                            }}
+                                            onFocus={() => {
+                                               setIsChatFocused(true)
+                                            }}
+                                            onBlur={() => {
+                                               setIsChatFocused(false)
                                             }}
                                             placeholder="Type your message..."
                                             className="w-full bg-white/5 text-white px-6 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500/50 placeholder-gray-400
@@ -510,7 +519,4 @@ const ControlButton = ({ active, onClick, icon }: { active: boolean, onClick: ()
 
 export default Spaces;
 
-function jwt_decode(token: string | null) {
-    throw new Error('Function not implemented.');
-}
 

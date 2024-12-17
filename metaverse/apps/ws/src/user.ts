@@ -114,14 +114,14 @@ export class User {
             );
             console.log("Movement broadcasted")
         
-          case "message":
+          case "chat message":
             const message = parsedData.payload?.message;
             const userName = parsedData.payload?.userName;
             const url = parsedData.payload?.avatarUrl;
             const timestamp = parsedData.payload?.timestamp;
 
             RoomManager.getInstance().broadcast({
-              type:"message",
+              type:"chat message",
               payload:{
                 userId:this.userId,
                 id:this.id,

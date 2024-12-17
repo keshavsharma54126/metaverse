@@ -31,7 +31,7 @@ export interface Space {
   }[];
 }
 
-const SpaceComponent = ({ space,currentUser,participants,wsRef }: { space: Space,currentUser:any,participants:any,wsRef:any }) => {
+const SpaceComponent = ({ space,currentUser,participants,wsRef,isChatFocused }: { space: Space,currentUser:any,participants:any,wsRef:any,isChatFocused:boolean  }) => {
   console.log("currentUser",currentUser)
   console.log("participants",participants)
   const phaserRef = useRef<HTMLDivElement>(null);
@@ -344,6 +344,7 @@ const SpaceComponent = ({ space,currentUser,participants,wsRef }: { space: Space
         this.events.on('update', () => {
           if (!player) return;
 
+          if(isChatFocused) return;
           const currentTime = Date.now();
           if (currentTime - lastMoveTime < moveDelay) return;
 

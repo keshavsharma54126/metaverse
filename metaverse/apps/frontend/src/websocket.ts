@@ -162,7 +162,7 @@ export class GameWebSocket {
                 )
                 break;
 
-            case "message":
+            case "chat message":
                 this.handlers.onMessage?.(
                     parsedData.payload.userId,
                     parsedData.payload.id,
