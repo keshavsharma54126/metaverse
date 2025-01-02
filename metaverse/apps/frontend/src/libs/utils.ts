@@ -15,7 +15,7 @@ export function getRandomId(length: number = 10): string {
   return Math.random().toString(36).substring(2, 2 + length);
 }
 
-export function formatDate(date: Date, format: string = 'YYYY-MM-DD'): string {
+export function formatDate(date: Date): string {
   const options: Intl.DateTimeFormatOptions = {
     year: 'numeric',
     month: '2-digit',

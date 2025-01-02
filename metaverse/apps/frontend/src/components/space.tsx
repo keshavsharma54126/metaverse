@@ -36,7 +36,8 @@ const SpaceComponent = ({ space,currentUser,participants,wsRef,isChatFocused }: 
   console.log("participants",participants)
   const phaserRef = useRef<HTMLDivElement>(null);
   const gameRef = useRef<Phaser.Game | null>(null);
-  const [elements, setElements] = useState<Element[]>(space.elements.map((e) => ({
+  //@ts-ignore
+  const [elements, setElements] = useState<Element[]>(space.elements.map((e:any) => ({
     id: e.element.id,
     imageUrl: e.element.imageUrl,
     name: e.element.name,
@@ -50,7 +51,9 @@ const SpaceComponent = ({ space,currentUser,participants,wsRef,isChatFocused }: 
   })));
   const [avatars, setAvatars] = useState<any[]>([]);
   const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+  //@ts-ignore
   const [zoom, setZoom] = useState(0);
+  //@ts-ignore
   const[camera, setCamera] = useState<Phaser.Cameras.Scene2D.Camera>();
   const [gridSize] = useState(16);
 
@@ -87,6 +90,7 @@ const SpaceComponent = ({ space,currentUser,participants,wsRef,isChatFocused }: 
       private players: Map<string, { sprite: Phaser.GameObjects.Image, nameText: Phaser.GameObjects.Text }> = new Map();
       private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
       private staticObjects!: Phaser.GameObjects.Group;
+      //@ts-ignore
       private currentPosition: { x: number, y: number };
       constructor() {
         super({ key: `${space.id}_OfficeScene` });
@@ -210,7 +214,7 @@ const SpaceComponent = ({ space,currentUser,participants,wsRef,isChatFocused }: 
         camera.centerOn(centerX, centerY);
 
         // Update wheel handler
-        this.input.on('wheel', (pointer: any, gameObjects: any, deltaX: number, deltaY: number) => {
+        this.input.on('wheel', (deltaY: number) => {
           const camera = this.cameras.main;
           const oldZoom = camera.zoom;
           const newZoom = Phaser.Math.Clamp(oldZoom - (deltaY * 0.001), 1, 4);
@@ -305,7 +309,7 @@ const SpaceComponent = ({ space,currentUser,participants,wsRef,isChatFocused }: 
                 }
               }
             },
-            onUserLeft: (userId: string, id: string) => {
+            onUserLeft: ( id: string) => {
               const player = this.players.get(id);
               if (player) {
                 player.sprite.destroy();

@@ -19,6 +19,7 @@ type Avatar = {
 const Dashboard = () => {
   const [selectedSpace, setSelectedSpace] = useState(null);
   const[user,setUser] = useState<User|null>(null)
+  //@ts-ignore
   const[avatar,setAvatar] = useState<Avatar|null>(null)
   const[avatars,setAvatars] = useState<Avatar[]>([])
   const[maps,setMaps] = useState([])

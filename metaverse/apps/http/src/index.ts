@@ -1,12 +1,14 @@
 import express from "express";
 import { router } from "./routes/v1/index";
 import cors from "cors";  // Correcting the import for CORS
+import dotenv from "dotenv";
+dotenv.config();
 
 const app = express();
 
 // CORS options with the correct configuration
 const corsOptions = {
-  origin: '*',  // Allows all origins
+  origin: process.env.FRONTEND_URL,  // Allows all origins
   methods: 'GET, POST, PUT, DELETE',  // Allowed methods
   allowedHeaders: 'Content-Type, Authorization',  // Allowed headers
 };

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Plus, Search, Star, Clock, Settings, LogOut, Map, Menu, Loader2 } from 'lucide-react';
+import { Plus, Search, Star, Clock, Settings, LogOut, Map, Loader2 } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/Tabs';
 import { Input } from '../components/Input';
 import { Button } from '../components/Button';

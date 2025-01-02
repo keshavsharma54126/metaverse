@@ -34,6 +34,7 @@ const Spaces = () => {
     const [isCameraOff, setCameraOff] = useState(false);
     const [isScreenSharing, setScreenSharing] = useState(false);
     const [isChatOpen, setChatOpen] = useState(true);
+    //@ts-ignore
     const [isConnected,setIsConnected] = useState(false);
     const [currentUser,setCurrentUser] = useState<any>({})
     const [participants,setParticipants] = useState<Participant[]>([]);
