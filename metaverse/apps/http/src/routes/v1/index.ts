@@ -83,6 +83,39 @@ router.post("/signin", async (req: any, res: any) => {
   }
 });
 
+router.post("/google-signin", async (req: any, res: any) => {
+  try{
+    const parsedData  = req.body
+    const user = await client.user.findUnique({
+      where:{
+        googleId:parsedData.decoded.sub
+      }
+    })
+    if(user){
+      const token = jwt.sign({ userId: user.id, role: user.role }, JWT_SECRET);
+      return res.status(200).json({
+        token
+      })
+    }
+    const newUser = await client.user.create({
+      data:{
+        googleId:parsedData.decoded.sub,
+        username:parsedData.decoded.name,
+        password:"",
+        role:"User"
+      }
+    })
+    const token = jwt.sign({ userId: newUser.id, role: newUser.role }, JWT_SECRET);
+    return res.status(200).json({
+      token
+    })
+  }catch(e){
+    return res.status(400).json({
+      message: "invalid data",
+    });
+  }
+});
+
 router.get("/avatars", userMiddleware, async (req: any, res: any) => {
   const avatars = await client.avatar.findMany();
   return res.json({

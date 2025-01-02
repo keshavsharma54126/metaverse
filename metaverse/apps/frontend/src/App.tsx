@@ -7,7 +7,6 @@ import Dashboard from "./pages/Dashboard";
 import AdminSignIn from "./pages/AdminSignIn";
 import AdminDashboard from "./pages/AdminDashboard";
 import MapMaker from "./pages/MapMaker";
-import Assignment from "./components/Assignment";
 import Spaces from "./pages/Spaces";
 function App() {
   return (
@@ -21,7 +20,6 @@ function App() {
           <Route path="/dashboard" element={<Dashboard/>}/>
           <Route path="/adminDashboard" element={<AdminDashboard/>}/>
           <Route path="/map/:id" element={<MapMaker/>} />
-          <Route path="/assignment" element={<Assignment/>} />
           <Route path="/space/:id" element={<Spaces/>} />
         </Routes>
       </BrowserRouter>

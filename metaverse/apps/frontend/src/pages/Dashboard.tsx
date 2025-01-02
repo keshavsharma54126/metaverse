@@ -26,62 +26,90 @@ const Dashboard = () => {
   const[isLoading,setIsLoading] = useState(true)
   const navigate = useNavigate()
   const BACKEND_URL = import.meta.env.VITE_BACKEND_URL
-    useEffect(()=>{
-        if(!localStorage.getItem("authToken")){
-            navigate("/signin")
+    useEffect(() => {
+      const token = localStorage.getItem("authToken");
+      if (!token) {
+        navigate("/signin");
+        return;
+      }
+
+      try {
+        const tokenParts = token.split(".");
+        if (tokenParts.length !== 3) {
+          console.error("Invalid token format");
+          navigate("/signin");
+          return;
         }
-        const token = localStorage.getItem("authToken")
-        const tokenPayload = token?.split(".")[1]
-        const decodedToken = atob(tokenPayload || '')
-        const userData = JSON.parse(decodedToken)
-        const userId = userData.userId
-       const fetchAvatar = async()=>{
-        const res = await axios.get(`${BACKEND_URL}/user/metadata/${userId}`,{
-          headers:{
-            Authorization:`Bearer ${token}`,
-            "Content-Type":"application/json"
+
+        // Add padding to base64 string if needed
+        const normalizedPayload = tokenParts[1].replace(/-/g, '+').replace(/_/g, '/');
+        const padding = '='.repeat((4 - normalizedPayload.length % 4) % 4);
+        const base64 = normalizedPayload + padding;
+
+        const decodedToken = atob(base64);
+        const userData = JSON.parse(decodedToken);
+        const userId = userData.userId;
+
+        if (!userId) {
+          console.error("Invalid token payload");
+          navigate("/signin");
+          return;
+        }
+
+        const fetchAvatar = async()=>{
+          try{
+            const res = await axios.get(`${BACKEND_URL}/user/metadata/${userId}`,{
+              headers:{
+                Authorization:`Bearer ${token}`,
+                "Content-Type":"application/json"
+              }
+            })
+            
+            setUser(res.data.user)
+          }catch(error){
+            console.error("could not fetch avatars",error)
           }
-        })
-        
-        setUser(res.data.user)
-        
-       }
-       fetchAvatar()
-       const fetchAvatars = async()=>{
-        const res = await axios.get(`${BACKEND_URL}/avatars`,{
-          headers:{
-            Authorization:`Bearer ${token}`,
-            "Content-Type":"application/json"
-          }
-        })
-       
-        setAvatars(res.data.avatars)
-      }
-      const fetchMaps = async()=>{
-        const res = await axios.get(`${BACKEND_URL}/user/maps`,{
-          headers:{
-            Authorization:`Bearer ${token}`,
-            "Content-Type":"application/json"
-          }
-        })
-        setMaps(res.data.maps)
-      }
-      const fetchSpaces = async()=>{
-        try{
-          const res = await axios.get(`${BACKEND_URL}/space/all/${userId}`,{
+        }
+        fetchAvatar()
+        const fetchAvatars = async()=>{
+          const res = await axios.get(`${BACKEND_URL}/avatars`,{
             headers:{
               Authorization:`Bearer ${token}`,
               "Content-Type":"application/json"
             }
           })
-          setSpaces(res.data.spaces)
-        }catch(err){
-          console.log(err)
+         
+          setAvatars(res.data.avatars)
         }
+        const fetchMaps = async()=>{
+          const res = await axios.get(`${BACKEND_URL}/user/maps`,{
+            headers:{
+              Authorization:`Bearer ${token}`,
+              "Content-Type":"application/json"
+            }
+          })
+          setMaps(res.data.maps)
+        }
+        const fetchSpaces = async()=>{
+          try{
+            const res = await axios.get(`${BACKEND_URL}/space/all/${userId}`,{
+              headers:{
+                Authorization:`Bearer ${token}`,
+                "Content-Type":"application/json"
+              }
+            })
+            setSpaces(res.data.spaces)
+          }catch(err){
+            console.log(err)
+          }
+        }
+        Promise.all([fetchAvatar(),fetchAvatars(),fetchMaps(),fetchSpaces()]).then(()=>{
+          setIsLoading(false)
+        })
+      } catch (error) {
+        console.error("Error parsing token:", error);
+        navigate("/signin");
       }
-      Promise.all([fetchAvatar(),fetchAvatars(),fetchMaps(),fetchSpaces()]).then(()=>{
-        setIsLoading(false)
-      })
     },[])
 
 

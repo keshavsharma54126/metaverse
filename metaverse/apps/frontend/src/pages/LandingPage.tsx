@@ -7,6 +7,17 @@ const LandingPage = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const navigate = useNavigate()
 
+  const scrollToSection = (sectionId: string) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  const handleStartClick = () => {
+    navigate('/signup');  // or whatever your signup route is
+  };
+
   return (
     <div className="min-h-screen bg-black text-white overflow-hidden">
       {/* Decorative background elements */}
@@ -26,9 +37,9 @@ const LandingPage = () => {
 
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center gap-8">
-              <a href="#features" className="text-sm text-gray-300 hover:text-white transition-colors">Features</a>
-              <a href="#about" className="text-sm text-gray-300 hover:text-white transition-colors">About</a>
-              <a href="#pricing" className="text-sm text-gray-300 hover:text-white transition-colors">Pricing</a>
+              <button onClick={() => scrollToSection('features')} className="text-sm text-gray-300 hover:text-white transition-colors">Features</button>
+              <button onClick={() => scrollToSection('about')} className="text-sm text-gray-300 hover:text-white transition-colors">About</button>
+              <button onClick={() => scrollToSection('pricing')} className="text-sm text-gray-300 hover:text-white transition-colors">Pricing</button>
               <button className="bg-white/10 backdrop-blur-sm text-white px-6 py-2 rounded-full hover:bg-white/20 transition"
                 onClick={()=>{
                     navigate("/signin")
@@ -36,7 +47,7 @@ const LandingPage = () => {
                 >
                 Sign In
               </button>
-              <button className="bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white px-6 py-2 rounded-full hover:opacity-90 transition">
+              <button onClick={()=>{navigate("/dashboard")}} className="bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white px-6 py-2 rounded-full hover:opacity-90 transition">
                 Get Started
               </button>
             </div>
@@ -103,7 +114,10 @@ const LandingPage = () => {
         Create immersive digital environments where teams connect, collaborate, and innovate together in real-time.
       </p>
       <div className="flex flex-col sm:flex-row justify-center gap-4 mb-16">
-        <button className="group bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white px-8 py-4 rounded-full text-lg font-medium hover:opacity-90 transition flex items-center justify-center">
+        <button 
+          onClick={handleStartClick}
+          className="group bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white px-8 py-4 rounded-full text-lg font-medium hover:opacity-90 transition flex items-center justify-center"
+        >
           Start for Free
           <ChevronRight className="ml-2 group-hover:translate-x-1 transition-transform" />
         </button>
@@ -129,7 +143,7 @@ const LandingPage = () => {
 
 
       {/* Features Grid */}
-      <section className="py-20 relative">
+      <section id="features" className="py-20 relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-5xl font-bold mb-4">Features for the Future</h2>
@@ -257,7 +271,10 @@ const LandingPage = () => {
                     <span>Interactive objects</span>
                   </li>
                 </ul>
-                <button className="w-full bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white px-6 py-3 rounded-full hover:opacity-90 transition">
+                <button 
+                  onClick={handleStartClick}
+                  className="w-full bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white px-6 py-3 rounded-full hover:opacity-90 transition"
+                >
                   Start Free Trial
                 </button>
               </div>
@@ -294,6 +311,60 @@ const LandingPage = () => {
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials Section */}
+      <section id="about" className="py-20 relative">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-5xl font-bold mb-4">What Our Users Say</h2>
+            <p className="text-gray-400 max-w-2xl mx-auto">
+              Join thousands of satisfied teams already transforming their virtual workspace
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              {
+                quote: "MetaSpace has completely transformed how our remote team collaborates. The spatial audio makes it feel like we're actually in the same room.",
+                author: "Sarah Johnson",
+                role: "CTO at TechCorp",
+                image: "https://randomuser.me/api/portraits/women/1.jpg"
+              },
+              {
+                quote: "The interactive features and custom environments have made our virtual meetings actually enjoyable. Our team engagement has increased significantly.",
+                author: "Michael Chen",
+                role: "Product Manager at InnovateCo",
+                image: "https://randomuser.me/api/portraits/men/2.jpg"
+              },
+              {
+                quote: "Setting up our virtual office was incredibly easy. The platform's stability and HD quality has made remote work seamless for our global team.",
+                author: "Emma Rodriguez",
+                role: "HR Director at GlobalTech",
+                image: "https://randomuser.me/api/portraits/women/3.jpg"
+              }
+            ].map((testimonial, index) => (
+              <div key={index} className="bg-white/5 backdrop-blur-sm rounded-2xl p-8 hover:bg-white/10 transition duration-300">
+                <div className="flex flex-col h-full">
+                  <div className="flex-grow">
+                    <p className="text-gray-300 mb-6 italic">"{testimonial.quote}"</p>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <img
+                      src={testimonial.image}
+                      alt={testimonial.author}
+                      className="w-12 h-12 rounded-full"
+                    />
+                    <div>
+                      <p className="font-semibold">{testimonial.author}</p>
+                      <p className="text-sm text-gray-400">{testimonial.role}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
