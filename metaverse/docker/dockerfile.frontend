@@ -49,6 +49,6 @@ EXPOSE 4173
 RUN npm run db:generate
 
 # Build frontend separately to avoid turbo cache issues
-RUN cd metaverse/apps/frontend && npm run build && cd ../../..
+RUN cd apps/frontend && npm run build && cd ../..
 
 CMD ["npm", "run", "start-frontend"]
