@@ -1,70 +1,65 @@
 version: '3.8'
 
+
 services:
   frontend:
-    build:
-      context: .
-      dockerfile: docker/dockerfile.frontend
+    image: sharmakeshav54126293/metaversefrontend:latest
+    env_file: .env
+    environment:
+      - NODE_ENV=production
     ports:
       - "4173:4173"
-    environment:
-      - VITE_JWT_SECRET=${VITE_JWT_SECRET}
-      - VITE_BACKEND_URL=${VITE_BACKEND_URL}
-      - VITE_WS_URL=${VITE_WS_URL}
-      - VITE_GOOGLE_CLIENT_ID=${VITE_GOOGLE_CLIENT_ID}
-      - VITE_GOOGLE_CLIENT_SECRET=${VITE_GOOGLE_CLIENT_SECRET}
-      - DATABASE_URL=${DATABASE_URL}
-      - FRONTEND_URL=${FRONTEND_URL}
-    depends_on:
-      backend:
-        condition: service_healthy
-      websocket:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:4173"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-      start_period: 10s
+    build:
+      context: .
+      dockerfile: ./docker/dockerfile.frontend
+      args:
+        - VITE_JWT_SECRET=${VITE_JWT_SECRET}
+        - VITE_BACKEND_URL=${VITE_BACKEND_URL}
+        - VITE_WS_URL=${VITE_WS_URL}
+        - VITE_GOOGLE_CLIENT_ID=${VITE_GOOGLE_CLIENT_ID}
+        - VITE_GOOGLE_CLIENT_SECRET=${VITE_GOOGLE_CLIENT_SECRET}
+        - DATABASE_URL=${DATABASE_URL}
+        - FRONTEND_URL=${FRONTEND_URL}
 
   backend:
-    build:
-      context: .
-      dockerfile: docker/dockerfile.http
+    image: sharmakeshav54126293/metaversehttp:latest
+    env_file: .env
+    environment:
+      - NODE_ENV=production
     ports:
       - "3000:3000"
-    environment:
-      - VITE_JWT_SECRET=${VITE_JWT_SECRET}
-      - VITE_BACKEND_URL=${VITE_BACKEND_URL}
-      - VITE_WS_URL=${VITE_WS_URL}
-      - VITE_GOOGLE_CLIENT_ID=${VITE_GOOGLE_CLIENT_ID}
-      - VITE_GOOGLE_CLIENT_SECRET=${VITE_GOOGLE_CLIENT_SECRET}
-      - DATABASE_URL=${DATABASE_URL}
-      - FRONTEND_URL=${FRONTEND_URL}
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/v1/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-      start_period: 10s
-
-  websocket:
     build:
       context: .
-      dockerfile: docker/dockerfile.ws
+      dockerfile: ./docker/dockerfile.http
+      args:
+        - VITE_JWT_SECRET=${VITE_JWT_SECRET}
+        - VITE_BACKEND_URL=${VITE_BACKEND_URL}
+        - VITE_WS_URL=${VITE_WS_URL}
+        - VITE_GOOGLE_CLIENT_ID=${VITE_GOOGLE_CLIENT_ID}
+        - VITE_GOOGLE_CLIENT_SECRET=${VITE_GOOGLE_CLIENT_SECRET}
+        - DATABASE_URL=${DATABASE_URL}
+        - FRONTEND_URL=${FRONTEND_URL}
+
+
+  websocket:
+    image: sharmakeshav54126293/metaversews:latest
+    env_file: .env
+    environment:
+      - NODE_ENV=production
     ports:
       - "8081:8081"
-    environment:
-      - VITE_JWT_SECRET=${VITE_JWT_SECRET}
-      - VITE_BACKEND_URL=${VITE_BACKEND_URL}
-      - VITE_WS_URL=${VITE_WS_URL}
-      - VITE_GOOGLE_CLIENT_ID=${VITE_GOOGLE_CLIENT_ID}
-      - VITE_GOOGLE_CLIENT_SECRET=${VITE_GOOGLE_CLIENT_SECRET}
-      - DATABASE_URL=${DATABASE_URL}
-      - FRONTEND_URL=${FRONTEND_URL}
-    healthcheck:
-      test: ["CMD", "nc", "-z", "localhost", "8081"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-      start_period: 10s
+    build:
+      context: .
+      dockerfile: ./docker/dockerfile.ws
+      args:
+        - VITE_JWT_SECRET=${VITE_JWT_SECRET}
+        - VITE_BACKEND_URL=${VITE_BACKEND_URL}
+        - VITE_WS_URL=${VITE_WS_URL}
+        - VITE_GOOGLE_CLIENT_ID=${VITE_GOOGLE_CLIENT_ID}
+        - VITE_GOOGLE_CLIENT_SECRET=${VITE_GOOGLE_CLIENT_SECRET}
+        - DATABASE_URL=${DATABASE_URL}
+        - FRONTEND_URL=${FRONTEND_URL}
+
+networks:
+  default:
+    driver: bridge
