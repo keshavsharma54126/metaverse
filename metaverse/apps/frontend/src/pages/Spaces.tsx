@@ -48,7 +48,7 @@ const Spaces = () => {
 
     useEffect(() => {
         const token = localStorage.getItem("authToken") as string;
-        if(!token) return navigate("/login");
+        if(!token) return navigate("/signin");
         const fetchSpace = async () => {
             if (!id) return;
             try {
@@ -321,7 +321,7 @@ const Spaces = () => {
                                 ref={chatContainerRef}
                                 className="flex-1 p-5 overflow-y-auto custom-scrollbar space-y-4"
                             >
-                                {messages.map((msg) => (
+                                {messages.map((msg) => msg.message && (
                                     <div 
                                         key={msg.id}
                                         className={`flex items-start gap-3 ${
