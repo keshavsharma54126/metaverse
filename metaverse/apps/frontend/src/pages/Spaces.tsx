@@ -47,6 +47,8 @@ const Spaces = () => {
     const [isChatFocused, setIsChatFocused] = useState(false);
 
     useEffect(() => {
+        const token = localStorage.getItem("authToken") as string;
+        if(!token) return navigate("/login");
         const fetchSpace = async () => {
             if (!id) return;
             try {
