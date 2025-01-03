@@ -214,7 +214,8 @@ const SpaceComponent = ({ space,currentUser,participants,wsRef,isChatFocused }: 
         camera.centerOn(centerX, centerY);
 
         // Update wheel handler
-        this.input.on('wheel', (deltaY: number) => {
+        //@ts-ignore
+        this.input.on('wheel', (pointer: Phaser.Input.Pointer, gameObjects: any[], deltaX: number, deltaY: number) => {
           const camera = this.cameras.main;
           const oldZoom = camera.zoom;
           const newZoom = Phaser.Math.Clamp(oldZoom - (deltaY * 0.001), 1, 4);

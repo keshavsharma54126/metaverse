@@ -284,13 +284,24 @@ const MapEditor = ({mapId}:{mapId:string}) => {
         this.cameras.setZoom(zoom);
 
         // Add mouse wheel zoom
-        this.input.on('wheel', ( deltaY: number) => {
-          //@ts-ignore  
-          const newZoom = this.cameras.zoom - (deltaY * 0.001);
+        //@ts-ignore
+        this.input.on('wheel', (pointer: Phaser.Input.Pointer, gameObjects: any[], deltaX: number, deltaY: number) => {
           //@ts-ignore
-          this.cameras.setZoom(Math.min(Math.max(newZoom, 0.5), 2));
-          //@ts-ignore
-          setZoom(this.cameras.zoom);
+          const camera = this.cameras.main;
+          const oldZoom = camera.zoom;
+          const newZoom = Phaser.Math.Clamp(oldZoom - (deltaY * 0.001), 0.5, 2);
+
+          // Store current center point
+          const centerX = camera.scrollX + (camera.width / 2 / oldZoom);
+          const centerY = camera.scrollY + (camera.height / 2 / oldZoom);
+
+          camera.setZoom(newZoom);
+          
+          // Maintain the same center point after zoom
+          camera.scrollX = centerX - (camera.width / 2 / newZoom);
+          camera.scrollY = centerY - (camera.height / 2 / newZoom);
+          
+          setZoom(newZoom);
         });
 
         this.player = this.physics.add.sprite(map.width/2,map.height/2,`avatar_${avatars[1].id}`)
