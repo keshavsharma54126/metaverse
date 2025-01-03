@@ -21,11 +21,11 @@ RUN apk add --no-cache netcat-openbsd
 
 WORKDIR /app    
 
-COPY package.json package-lock.json ./
-COPY turbo.json ./
-COPY packages/ui/package.json ./packages/ui/package.json
-COPY packages/db/package.json ./packages/db/package.json
-COPY apps/ws/package.json ./apps/ws/package.json
+COPY metaverse/package.json metaverse/package-lock.json ./
+COPY metaverse/turbo.json ./
+COPY metaverse/packages/ui/package.json ./packages/ui/package.json
+COPY metaverse/packages/db/package.json ./packages/db/package.json
+COPY metaverse/apps/ws/package.json ./apps/ws/package.json
 
 # Install dependencies
 RUN npm install

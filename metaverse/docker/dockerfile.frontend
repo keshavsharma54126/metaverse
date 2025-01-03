@@ -24,11 +24,11 @@ WORKDIR /app
 
 COPY package.json package-lock.json ./
 COPY turbo.json ./
-COPY packages/ui/package.json ./packages/ui/package.json
-COPY packages/db/package.json ./packages/db/package.json
-COPY apps/http/package.json ./apps/http/package.json
-COPY apps/frontend/package.json ./apps/frontend/package.json
-COPY apps/ws/package.json ./apps/ws/package.json
+COPY metaverse/packages/ui/package.json ./packages/ui/package.json
+COPY metaverse/packages/db/package.json ./packages/db/package.json
+COPY metaverse/apps/http/package.json ./apps/http/package.json
+COPY metaverse/apps/frontend/package.json ./apps/frontend/package.json
+COPY metaverse/apps/ws/package.json ./apps/ws/package.json
 
 
 RUN npm install
