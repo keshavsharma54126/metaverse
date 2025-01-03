@@ -1,54 +1,40 @@
 FROM node:20-alpine AS base
 
-ARG GOOGLE_CLIENT_ID
-ARG GOOGLE_CLIENT_SECRET
-ARG GOOGLE_REDIRECT_URI
+ARG VITE_JWT_SECRET
+ARG VITE_BACKEND_URL
+ARG VITE_WS_URL
+ARG VITE_GOOGLE_CLIENT_ID
+ARG VITE_GOOGLE_CLIENT_SECRET
+ARG DATABASE_URL
 ARG FRONTEND_URL
-ARG NEXT_PUBLIC_FRONTEND_URL
-ARG LIVEKIT_API_KEY
-ARG LIVEKIT_API_SECRET
-ARG LIVEKIT_URL
-ARG RABBITMQ_URL
-ARG ACCESS_KEY_ID
-ARG SECRET_ACCESS_KEY
-ARG REGION
-ARG BUCKET_NAME
 
-ENV GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
-ENV GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
-ENV GOOGLE_REDIRECT_URI=${GOOGLE_REDIRECT_URI}
+ENV VITE_BACKEND_URL=${VITE_BACKEND_URL}
+ENV VITE_WS_URL=${VITE_WS_URL}
+ENV VITE_GOOGLE_CLIENT_ID=${VITE_GOOGLE_CLIENT_ID}
+ENV VITE_GOOGLE_CLIENT_SECRET=${VITE_GOOGLE_CLIENT_SECRET}
+ENV VITE_JWT_SECRET=${VITE_JWT_SECRET}
+ENV DATABASE_URL=${DATABASE_URL}
 ENV FRONTEND_URL=${FRONTEND_URL}
-ENV NEXT_PUBLIC_FRONTEND_URL=${NEXT_PUBLIC_FRONTEND_URL}
-ENV LIVEKIT_API_KEY=${LIVEKIT_API_KEY}
-ENV LIVEKIT_API_SECRET=${LIVEKIT_API_SECRET}
-ENV LIVEKIT_URL=${LIVEKIT_URL}
-ENV RABBITMQ_URL=${RABBITMQ_URL}
-ENV ACCESS_KEY_ID=${ACCESS_KEY_ID}
-ENV SECRET_ACCESS_KEY=${SECRET_ACCESS_KEY}
-ENV REGION=${REGION}
-ENV BUCKET_NAME=${BUCKET_NAME}
 
 RUN apk add --no-cache openssl
-
+RUN apk add --no-cache wget
 WORKDIR /app
-
 
 COPY package.json package-lock.json ./
 COPY turbo.json ./
 COPY packages/ui/package.json ./packages/ui/package.json
 COPY packages/db/package.json ./packages/db/package.json
-COPY apps/http-backend/package.json ./apps/http-backend/package.json
-COPY apps/upload-worker/package.json ./apps/upload-worker/package.json
-COPY apps/wsServer/package.json ./apps/wsServer/package.json
-COPY apps/web/package.json ./apps/web/package.json
+COPY apps/http/package.json ./apps/http/package.json
+COPY apps/frontend/package.json ./apps/frontend/package.json
+COPY apps/ws/package.json ./apps/ws/package.json
 
 RUN npm install
 
-COPY apps/http-backend ./apps/http-backend
+COPY apps/http ./apps/http
 COPY packages/db ./packages/db
 
 RUN npm run db:generate
 
-RUN cd apps/http-backend && npm run build && cd ../..
+RUN cd apps/http && npm run build && cd ../..
 
-CMD ["npm", "run", "start-http-backend"]
+CMD ["npm", "run", "start-http"]

@@ -1,0 +1,70 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/dockerfile.frontend
+    ports:
+      - "4173:4173"
+    environment:
+      - VITE_JWT_SECRET=${VITE_JWT_SECRET}
+      - VITE_BACKEND_URL=${VITE_BACKEND_URL}
+      - VITE_WS_URL=${VITE_WS_URL}
+      - VITE_GOOGLE_CLIENT_ID=${VITE_GOOGLE_CLIENT_ID}
+      - VITE_GOOGLE_CLIENT_SECRET=${VITE_GOOGLE_CLIENT_SECRET}
+      - DATABASE_URL=${DATABASE_URL}
+      - FRONTEND_URL=${FRONTEND_URL}
+    depends_on:
+      backend:
+        condition: service_healthy
+      websocket:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:4173"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  backend:
+    build:
+      context: .
+      dockerfile: docker/dockerfile.http
+    ports:
+      - "3000:3000"
+    environment:
+      - VITE_JWT_SECRET=${VITE_JWT_SECRET}
+      - VITE_BACKEND_URL=${VITE_BACKEND_URL}
+      - VITE_WS_URL=${VITE_WS_URL}
+      - VITE_GOOGLE_CLIENT_ID=${VITE_GOOGLE_CLIENT_ID}
+      - VITE_GOOGLE_CLIENT_SECRET=${VITE_GOOGLE_CLIENT_SECRET}
+      - DATABASE_URL=${DATABASE_URL}
+      - FRONTEND_URL=${FRONTEND_URL}
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/v1/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  websocket:
+    build:
+      context: .
+      dockerfile: docker/dockerfile.ws
+    ports:
+      - "8081:8081"
+    environment:
+      - VITE_JWT_SECRET=${VITE_JWT_SECRET}
+      - VITE_BACKEND_URL=${VITE_BACKEND_URL}
+      - VITE_WS_URL=${VITE_WS_URL}
+      - VITE_GOOGLE_CLIENT_ID=${VITE_GOOGLE_CLIENT_ID}
+      - VITE_GOOGLE_CLIENT_SECRET=${VITE_GOOGLE_CLIENT_SECRET}
+      - DATABASE_URL=${DATABASE_URL}
+      - FRONTEND_URL=${FRONTEND_URL}
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "8081"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s

@@ -1,0 +1,77 @@
+name: Build and Deploy to Docker Hub
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and push Frontend image
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: metaverse/docker/dockerfile.frontend
+          push: true
+          tags: sharmakeshav54126293/metaversefrontend:latest
+          build-args: |
+            VITE_JWT_SECRET=${{ secrets.VITE_JWT_SECRET }}
+            VITE_BACKEND_URL=${{ secrets.VITE_BACKEND_URL }}
+            VITE_WS_URL=${{ secrets.VITE_WS_URL }}
+            VITE_GOOGLE_CLIENT_ID=${{ secrets.VITE_GOOGLE_CLIENT_ID }}
+            VITE_GOOGLE_CLIENT_SECRET=${{ secrets.VITE_GOOGLE_CLIENT_SECRET }}
+            DATABASE_URL=${{ secrets.DATABASE_URL }}
+            FRONTEND_URL=${{ secrets.FRONTEND_URL }}
+
+      - name: Build and push HTTP image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: metaverse/docker/dockerfile.http
+          push: true
+          tags: sharmakeshav54126293/metaversehttp:latest
+          build-args: |
+            VITE_JWT_SECRET=${{ secrets.VITE_JWT_SECRET }}
+            VITE_BACKEND_URL=${{ secrets.VITE_BACKEND_URL }}
+            VITE_WS_URL=${{ secrets.VITE_WS_URL }}
+            VITE_GOOGLE_CLIENT_ID=${{ secrets.VITE_GOOGLE_CLIENT_ID }}
+            VITE_GOOGLE_CLIENT_SECRET=${{ secrets.VITE_GOOGLE_CLIENT_SECRET }}
+            DATABASE_URL=${{ secrets.DATABASE_URL }}
+            FRONTEND_URL=${{ secrets.FRONTEND_URL }}
+
+      - name: Build and push WS image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: metaverse/docker/dockerfile.ws
+          push: true
+          tags: sharmakeshav54126293/metaversews:latest
+          build-args: |
+            VITE_JWT_SECRET=${{ secrets.VITE_JWT_SECRET }}
+            VITE_BACKEND_URL=${{ secrets.VITE_BACKEND_URL }}
+            VITE_WS_URL=${{ secrets.VITE_WS_URL }}
+            VITE_GOOGLE_CLIENT_ID=${{ secrets.VITE_GOOGLE_CLIENT_ID }}
+            VITE_GOOGLE_CLIENT_SECRET=${{ secrets.VITE_GOOGLE_CLIENT_SECRET }}
+            DATABASE_URL=${{ secrets.DATABASE_URL }}
+            FRONTEND_URL=${{ secrets.FRONTEND_URL }}
+
+

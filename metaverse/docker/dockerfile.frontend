@@ -5,16 +5,19 @@ ARG VITE_BACKEND_URL
 ARG VITE_WS_URL
 ARG VITE_GOOGLE_CLIENT_ID
 ARG VITE_GOOGLE_CLIENT_SECRET
+ARG DATABASE_URL
+ARG FRONTEND_URL
 
 ENV VITE_BACKEND_URL=${VITE_BACKEND_URL}
 ENV VITE_WS_URL=${VITE_WS_URL}
 ENV VITE_GOOGLE_CLIENT_ID=${VITE_GOOGLE_CLIENT_ID}
 ENV VITE_GOOGLE_CLIENT_SECRET=${VITE_GOOGLE_CLIENT_SECRET}
 ENV VITE_JWT_SECRET=${VITE_JWT_SECRET}
-
-
+ENV DATABASE_URL=${DATABASE_URL}
+ENV FRONTEND_URL=${FRONTEND_URL}
 
 RUN apk add --no-cache openssl
+RUN apk add --no-cache wget
 
 FROM base AS deps 
 WORKDIR /app 
@@ -35,9 +38,11 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
+EXPOSE 4173
+
 RUN npm run db:generate
 
 RUN npm run build
 
 
-CMD ["npm", "run", "start-web"]
+CMD ["npm", "run", "start-frontend"]
