@@ -8,8 +8,8 @@ const app = express();
 
 // CORS options with the correct configuration
 const corsOptions = {
-  origin: process.env.FRONTEND_URL,  // Allows all origins
-  methods: 'GET, POST, PUT, DELETE',  // Allowed methods
+  origin: ["http://metaverse.69xdev.in", "https://metaverse.69xdev.in"],  // Allows all origins
+  methods: 'GET, POST, PUT, DELETE, OPTIONS',  // Allowed methods
   allowedHeaders: 'Content-Type, Authorization',  // Allowed headers
 };
 
@@ -19,6 +19,9 @@ app.use(express.json());  // Middleware to parse JSON bodies
 
 // Mount your API routes
 app.use("/api/v1", router);
+app.get("/health", (req, res) => {
+  res.status(200).json({ message: "OK" });
+});
 
 // Start the server
 app.listen(3000, () => {
