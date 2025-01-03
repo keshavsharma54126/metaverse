@@ -40,7 +40,8 @@ model Space {
   adminId             String
   mapId               String
   createdAt           DateTime  @default(now())
-  updatedAt           DateTime  
+  updatedAt           DateTime 
+  status              Status  @default(Active)
   elements            spaceElements[]
   messages            Message[]
   members             User[]  @relation("MemberSpaces")
@@ -112,4 +113,9 @@ model Message{
 enum Role {
   Admin
   User
+}
+
+enum Status {
+  Active
+  Inactive
 }

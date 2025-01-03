@@ -25,6 +25,7 @@ export interface Space {
   width: number;
   height: number;
   mapId: string;
+  status: string;
   elements: {
     id: string;
     element: Element;
@@ -32,8 +33,6 @@ export interface Space {
 }
 
 const SpaceComponent = ({ space,currentUser,participants,wsRef,isChatFocused }: { space: Space,currentUser:any,participants:any,wsRef:any,isChatFocused:boolean  }) => {
-  console.log("currentUser",currentUser)
-  console.log("participants",participants)
   const phaserRef = useRef<HTMLDivElement>(null);
   const gameRef = useRef<Phaser.Game | null>(null);
   //@ts-ignore
