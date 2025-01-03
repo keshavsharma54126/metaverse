@@ -45,8 +45,10 @@ COPY metaverse/packages/db ./packages/db
 
 EXPOSE 4173
 
+# Generate Prisma client
 RUN npm run db:generate
 
-RUN npm run build
+# Build frontend separately to avoid turbo cache issues
+RUN cd metaverse/apps/frontend && npm run build && cd ../../..
 
 CMD ["npm", "run", "start-frontend"]

@@ -38,7 +38,7 @@ COPY metaverse/packages/db ./packages/db
 
 RUN npm run db:generate
 
-RUN cd apps/ws && npm run build && cd ../..
+RUN cd metaverse/apps/ws && npm run build && cd ../../..
 
 
 EXPOSE 8081
