@@ -21,13 +21,19 @@ RUN apk add --no-cache netcat-openbsd
 
 WORKDIR /app    
 
+# Copy all package.json files first
 COPY metaverse/package.json ./
 COPY metaverse/turbo.json ./
+COPY metaverse/packages/eslint-config/package.json ./packages/eslint-config/
+COPY metaverse/packages/typescript-config/package.json ./packages/typescript-config/
 COPY metaverse/packages/ui/package.json ./packages/ui/
 COPY metaverse/packages/db/package.json ./packages/db/
 COPY metaverse/apps/frontend/package.json ./apps/frontend/
 COPY metaverse/apps/ws/package.json ./apps/ws/
 COPY metaverse/apps/http/package.json ./apps/http/
+
+# Copy the entire packages directory for local dependencies
+COPY metaverse/packages ./packages
 
 
 # Install dependencies
