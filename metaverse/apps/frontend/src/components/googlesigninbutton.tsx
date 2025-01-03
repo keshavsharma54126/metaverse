@@ -16,7 +16,7 @@ const GoogleLoginButton = () => {
         }
         const decoded = jwtDecode(credentialResponse.credential);
         try{
-          const response = await axios.post(import.meta.env.VITE_BACKEND_URL+"/api/v1/google-signin",{
+          const response = await axios.post(import.meta.env.VITE_BACKEND_URL+"/google-signin",{
             decoded
           })
           const token = response.data.token
