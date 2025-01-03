@@ -21,13 +21,13 @@ RUN apk add --no-cache netcat-openbsd
 
 WORKDIR /app    
 
-COPY metaverse/package.json /package.json ./
+COPY metaverse/package.json ./
 COPY metaverse/turbo.json ./
-COPY metaverse/packages/ui/package.json ./packages/ui/package.json
-COPY metaverse/packages/db/package.json ./packages/db/package.json
-COPY metaverse/apps/frontend/package.json ./apps/frontend/package.json
-COPY metaverse/apps/ws/package.json ./apps/ws/package.json
-COPY metaverse/apps/http/package.json ./apps/http/package.json
+COPY metaverse/packages/ui/package.json ./packages/ui/
+COPY metaverse/packages/db/package.json ./packages/db/
+COPY metaverse/apps/frontend/package.json ./apps/frontend/
+COPY metaverse/apps/ws/package.json ./apps/ws/
+COPY metaverse/apps/http/package.json ./apps/http/
 
 
 # Install dependencies
