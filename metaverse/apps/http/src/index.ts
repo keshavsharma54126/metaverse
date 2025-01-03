@@ -8,7 +8,7 @@ const app = express();
 
 // CORS options with the correct configuration
 const corsOptions = {
-  origin: process.env.FRONTEND_URL,  // Allows all origins
+  origin: "http://metaverse.69xdev.in",  // Allows all origins
   methods: 'GET, POST, PUT, DELETE',  // Allowed methods
   allowedHeaders: 'Content-Type, Authorization',  // Allowed headers
 };
